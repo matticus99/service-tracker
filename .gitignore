@@ -29,5 +29,5 @@ postgres_data/
 # Node (frontend - Phase 2)
 node_modules/
 
-#Documentation
+# Documentation
 docs
