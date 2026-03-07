@@ -1,8 +1,9 @@
 import os
 import uuid
 
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
+from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, File, Form
 from fastapi.responses import FileResponse
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
@@ -19,6 +20,34 @@ ALLOWED_MIME_TYPES = {
     "image/heic",
     "application/pdf",
 }
+
+
+@router.get("")
+async def list_attachments(
+    vehicle_id: uuid.UUID = Query(...),
+    record_type: RecordType = Query(...),
+    record_id: uuid.UUID = Query(...),
+    db: AsyncSession = Depends(get_db),
+):
+    result = await db.execute(
+        select(Attachment)
+        .where(
+            Attachment.vehicle_id == vehicle_id,
+            Attachment.record_type == record_type,
+            Attachment.record_id == record_id,
+        )
+        .order_by(Attachment.created_at)
+    )
+    attachments = result.scalars().all()
+    return [
+        {
+            "id": str(a.id),
+            "filename": a.filename,
+            "mime_type": a.mime_type,
+            "file_size_bytes": a.file_size_bytes,
+        }
+        for a in attachments
+    ]
 
 
 @router.post("/upload", status_code=201)

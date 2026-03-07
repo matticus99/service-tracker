@@ -20,6 +20,8 @@ import { PageSkeleton } from '@/components/ui/Skeleton'
 import { ErrorState } from '@/components/ui/ErrorState'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { formatMileage, formatCurrency, formatDate } from '@/lib/format'
+import { AddServiceRecordModal } from '@/components/forms/AddServiceRecordModal'
+import { AddObservationModal } from '@/components/forms/AddObservationModal'
 import type { Dashboard } from '@/types/api'
 
 export function DashboardPage() {
@@ -55,24 +57,45 @@ export function DashboardPage() {
 }
 
 function QuickActions() {
-  const { toast } = useToast()
+  const { vehicleId, vehicle } = useVehicle()
+  const [serviceOpen, setServiceOpen] = useState(false)
+  const [observationOpen, setObservationOpen] = useState(false)
+
   return (
-    <div className="grid grid-cols-2 gap-2 max-w-[400px]">
-      <button
-        onClick={() => toast('Forms coming in Phase 3')}
-        className="flex items-center justify-center gap-2 px-4 py-3 bg-accent-subtle text-accent rounded-lg hover:bg-accent/20 transition-colors text-sm font-medium"
-      >
-        <Plus className="w-4 h-4" />
-        Service Record
-      </button>
-      <button
-        onClick={() => toast('Forms coming in Phase 3')}
-        className="flex items-center justify-center gap-2 px-4 py-3 bg-accent-subtle text-accent rounded-lg hover:bg-accent/20 transition-colors text-sm font-medium"
-      >
-        <Plus className="w-4 h-4" />
-        Observation
-      </button>
-    </div>
+    <>
+      <div className="grid grid-cols-2 gap-2 max-w-[400px]">
+        <button
+          onClick={() => setServiceOpen(true)}
+          className="flex items-center justify-center gap-2 px-4 py-3 bg-accent-subtle text-accent rounded-lg hover:bg-accent/20 transition-colors text-sm font-medium"
+        >
+          <Plus className="w-4 h-4" />
+          Service Record
+        </button>
+        <button
+          onClick={() => setObservationOpen(true)}
+          className="flex items-center justify-center gap-2 px-4 py-3 bg-accent-subtle text-accent rounded-lg hover:bg-accent/20 transition-colors text-sm font-medium"
+        >
+          <Plus className="w-4 h-4" />
+          Observation
+        </button>
+      </div>
+      {vehicleId && (
+        <>
+          <AddServiceRecordModal
+            open={serviceOpen}
+            onClose={() => setServiceOpen(false)}
+            vehicleId={vehicleId}
+            currentMileage={vehicle?.current_mileage ?? 0}
+          />
+          <AddObservationModal
+            open={observationOpen}
+            onClose={() => setObservationOpen(false)}
+            vehicleId={vehicleId}
+            currentMileage={vehicle?.current_mileage ?? 0}
+          />
+        </>
+      )}
+    </>
   )
 }
 

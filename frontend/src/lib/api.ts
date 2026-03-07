@@ -6,6 +6,13 @@ import type {
   Observation,
   Dashboard,
   Settings,
+  OilChangeCreate,
+  ServiceRecordCreate,
+  ObservationCreate,
+  IntervalItemCreate,
+  VehicleUpdate,
+  SettingsUpdate,
+  AttachmentMeta,
 } from '@/types/api'
 
 const BASE = '/api/v1'
@@ -27,6 +34,11 @@ export const api = {
   vehicles: {
     list: () => request<Vehicle[]>('/vehicles'),
     get: (id: string) => request<Vehicle>(`/vehicles/${id}`),
+    update: (id: string, data: VehicleUpdate) =>
+      request<Vehicle>(`/vehicles/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+      }),
     updateMileage: (id: string, mileage: number) =>
       request<Vehicle>(`/vehicles/${id}/mileage`, {
         method: 'PATCH',
@@ -42,16 +54,36 @@ export const api = {
   oilChanges: {
     list: (vehicleId: string) =>
       request<OilChange[]>(`/vehicles/${vehicleId}/oil-changes`),
+    create: (vehicleId: string, data: OilChangeCreate) =>
+      request<OilChange>(`/vehicles/${vehicleId}/oil-changes`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
   },
 
   serviceRecords: {
     list: (vehicleId: string) =>
       request<ServiceRecord[]>(`/vehicles/${vehicleId}/service-records`),
+    create: (vehicleId: string, data: ServiceRecordCreate) =>
+      request<ServiceRecord>(`/vehicles/${vehicleId}/service-records`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
   },
 
   intervalItems: {
     list: (vehicleId: string) =>
       request<IntervalItem[]>(`/vehicles/${vehicleId}/interval-items`),
+    create: (vehicleId: string, data: IntervalItemCreate) =>
+      request<IntervalItem>(`/vehicles/${vehicleId}/interval-items`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
+    update: (vehicleId: string, itemId: string, data: Partial<IntervalItemCreate>) =>
+      request<IntervalItem>(`/vehicles/${vehicleId}/interval-items/${itemId}`, {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+      }),
     markServiced: (
       vehicleId: string,
       itemId: string,
@@ -70,6 +102,11 @@ export const api = {
         `/vehicles/${vehicleId}/observations${params}`,
       )
     },
+    create: (vehicleId: string, data: ObservationCreate) =>
+      request<Observation>(`/vehicles/${vehicleId}/observations`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
     update: (vehicleId: string, obsId: string, data: Partial<Observation>) =>
       request<Observation>(`/vehicles/${vehicleId}/observations/${obsId}`, {
         method: 'PATCH',
@@ -79,5 +116,35 @@ export const api = {
 
   settings: {
     get: () => request<Settings>('/settings'),
+    update: (data: SettingsUpdate) =>
+      request<Settings>('/settings', {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+      }),
+  },
+
+  attachments: {
+    list: (vehicleId: string, recordType: string, recordId: string) =>
+      request<AttachmentMeta[]>(
+        `/attachments?vehicle_id=${vehicleId}&record_type=${recordType}&record_id=${recordId}`,
+      ),
+    upload: async (data: FormData): Promise<AttachmentMeta> => {
+      const res = await fetch(`${BASE}/attachments/upload`, {
+        method: 'POST',
+        body: data,
+      })
+      if (!res.ok) {
+        const text = await res.text().catch(() => res.statusText)
+        throw new Error(`${res.status}: ${text}`)
+      }
+      return res.json()
+    },
+    getUrl: (id: string) => `${BASE}/attachments/${id}`,
+    delete: (id: string) =>
+      request<void>(`/attachments/${id}`, { method: 'DELETE' }),
+  },
+
+  export: {
+    url: () => `${BASE}/export`,
   },
 }

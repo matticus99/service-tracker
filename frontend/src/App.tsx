@@ -5,6 +5,7 @@ import { DashboardPage } from '@/pages/DashboardPage'
 import { HistoryPage } from '@/pages/HistoryPage'
 import { TrackerPage } from '@/pages/TrackerPage'
 import { NotesPage } from '@/pages/NotesPage'
+import { SettingsPage } from '@/pages/SettingsPage'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -23,6 +24,7 @@ export default function App() {
             <Route path="/history" element={<HistoryPage />} />
             <Route path="/tracker" element={<TrackerPage />} />
             <Route path="/notes" element={<NotesPage />} />
+            <Route path="/settings" element={<SettingsPage />} />
           </Route>
         </Routes>
       </BrowserRouter>

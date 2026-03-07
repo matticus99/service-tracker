@@ -6,6 +6,7 @@ import {
   ChevronRight,
   X,
   Inbox,
+  Plus,
 } from 'lucide-react'
 import { useServiceHistory } from '@/hooks/useApi'
 import { useVehicle } from '@/context/VehicleContext'
@@ -14,6 +15,9 @@ import { Modal } from '@/components/ui/Modal'
 import { PageSkeleton } from '@/components/ui/Skeleton'
 import { ErrorState } from '@/components/ui/ErrorState'
 import { EmptyState } from '@/components/ui/EmptyState'
+import { AttachmentSection } from '@/components/attachments/AttachmentSection'
+import { AddOilChangeModal } from '@/components/forms/AddOilChangeModal'
+import { AddServiceRecordModal } from '@/components/forms/AddServiceRecordModal'
 import {
   formatDate,
   formatDateLong,
@@ -23,14 +27,16 @@ import { groupByMonth } from '@/lib/history'
 import type { ServiceHistoryEntry, OilChange, ServiceRecord } from '@/types/api'
 
 type TypeFilter = 'all' | 'oil_change' | 'service'
+type AddType = 'oil_change' | 'service' | null
 
 export function HistoryPage() {
-  const { vehicleId } = useVehicle()
+  const { vehicleId, vehicle } = useVehicle()
   const { data: entries, isLoading, error, refetch } = useServiceHistory(vehicleId)
   const [typeFilter, setTypeFilter] = useState<TypeFilter>('all')
   const [searchQuery, setSearchQuery] = useState('')
   const [searchOpen, setSearchOpen] = useState(false)
   const [selectedEntry, setSelectedEntry] = useState<ServiceHistoryEntry | null>(null)
+  const [addOpen, setAddOpen] = useState<AddType>(null)
 
   const facilities = useMemo(() => {
     if (!entries) return []
@@ -73,6 +79,8 @@ export function HistoryPage() {
   if (isLoading) return <PageSkeleton cards={4} />
   if (error) return <ErrorState onRetry={() => refetch()} />
 
+  const currentMileage = vehicle?.current_mileage ?? 0
+
   return (
     <div className="p-4 max-w-4xl mx-auto">
       <div className="flex items-center gap-2 mb-4 flex-wrap">
@@ -101,7 +109,7 @@ export function HistoryPage() {
           </select>
         )}
 
-        <div className="ml-auto flex items-center">
+        <div className="ml-auto flex items-center gap-1">
           {searchOpen ? (
             <div className="flex items-center gap-1 bg-bg-card border border-border-default rounded-full px-3">
               <Search className="w-4 h-4 text-text-muted" />
@@ -129,6 +137,27 @@ export function HistoryPage() {
               <Search className="w-5 h-5" />
             </button>
           )}
+          <div className="relative group">
+            <button className="p-2 text-accent hover:bg-accent-subtle rounded-lg transition-colors">
+              <Plus className="w-5 h-5" />
+            </button>
+            <div className="absolute right-0 top-full mt-1 bg-bg-elevated border border-border-default rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-20 min-w-[160px]">
+              <button
+                onClick={() => setAddOpen('oil_change')}
+                className="w-full text-left px-3 py-2.5 text-sm text-text-primary hover:bg-bg-card transition-colors rounded-t-lg flex items-center gap-2"
+              >
+                <Droplets className="w-4 h-4 text-accent" />
+                Oil Change
+              </button>
+              <button
+                onClick={() => setAddOpen('service')}
+                className="w-full text-left px-3 py-2.5 text-sm text-text-primary hover:bg-bg-card transition-colors rounded-b-lg flex items-center gap-2"
+              >
+                <Wrench className="w-4 h-4 text-purple-400" />
+                Service Record
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -164,11 +193,29 @@ export function HistoryPage() {
         </div>
       )}
 
-      {selectedEntry && (
+      {selectedEntry && vehicleId && (
         <DetailModal
           entry={selectedEntry}
           onClose={() => setSelectedEntry(null)}
+          vehicleId={vehicleId}
         />
+      )}
+
+      {vehicleId && (
+        <>
+          <AddOilChangeModal
+            open={addOpen === 'oil_change'}
+            onClose={() => setAddOpen(null)}
+            vehicleId={vehicleId}
+            currentMileage={currentMileage}
+          />
+          <AddServiceRecordModal
+            open={addOpen === 'service'}
+            onClose={() => setAddOpen(null)}
+            vehicleId={vehicleId}
+            currentMileage={currentMileage}
+          />
+        </>
       )}
     </div>
   )
@@ -227,12 +274,15 @@ function ServiceCard({
 function DetailModal({
   entry,
   onClose,
+  vehicleId,
 }: {
   entry: ServiceHistoryEntry
   onClose: () => void
+  vehicleId: string
 }) {
   const isOil = entry.type === 'oil_change'
   const d = entry.data
+  const recordType = isOil ? 'oil_change' : 'service_record'
 
   return (
     <Modal
@@ -301,6 +351,11 @@ function DetailModal({
           </div>
         )}
       </div>
+      <AttachmentSection
+        vehicleId={vehicleId}
+        recordType={recordType as 'oil_change' | 'service_record'}
+        recordId={d.id}
+      />
     </Modal>
   )
 }

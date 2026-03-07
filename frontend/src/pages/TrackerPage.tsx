@@ -6,6 +6,8 @@ import {
   Gauge,
   Calendar,
   DollarSign,
+  Plus,
+  Pencil,
 } from 'lucide-react'
 import {
   useIntervalItems,
@@ -22,6 +24,7 @@ import { Modal } from '@/components/ui/Modal'
 import { PageSkeleton } from '@/components/ui/Skeleton'
 import { ErrorState } from '@/components/ui/ErrorState'
 import { EmptyState } from '@/components/ui/EmptyState'
+import { IntervalItemFormModal } from '@/components/forms/IntervalItemFormModal'
 import { formatMileage, formatCurrency, formatDate } from '@/lib/format'
 import type { IntervalItem, IntervalStatus } from '@/types/api'
 
@@ -45,6 +48,7 @@ export function TrackerPage() {
   const { data: settings } = useSettings()
   const [searchParams] = useSearchParams()
   const highlightStatus = searchParams.get('status')
+  const [createOpen, setCreateOpen] = useState(false)
 
   const grouped = useMemo(() => {
     if (!items) return new Map<IntervalStatus, IntervalItem[]>()
@@ -66,6 +70,13 @@ export function TrackerPage() {
 
   return (
     <div className="p-4 max-w-4xl mx-auto flex flex-col gap-3">
+      <button
+        onClick={() => setCreateOpen(true)}
+        className="self-start flex items-center gap-2 px-4 py-2 bg-accent-subtle text-accent rounded-lg hover:bg-accent/20 transition-colors text-sm font-medium"
+      >
+        <Plus className="w-4 h-4" />
+        Interval Item
+      </button>
       {allItems.length === 0 ? (
         <EmptyState
           icon={<Gauge className="w-10 h-10" />}
@@ -94,6 +105,13 @@ export function TrackerPage() {
           })}
           <CostSummaryFooter items={allItems} settings={settings} />
         </>
+      )}
+      {vehicleId && (
+        <IntervalItemFormModal
+          open={createOpen}
+          onClose={() => setCreateOpen(false)}
+          vehicleId={vehicleId}
+        />
       )}
     </div>
   )
@@ -165,6 +183,7 @@ function TrackerItemCard({
   delay: number
 }) {
   const [servicedOpen, setServicedOpen] = useState(false)
+  const [editOpen, setEditOpen] = useState(false)
 
   const percent = calcPercent(item, currentMileage)
 
@@ -173,11 +192,20 @@ function TrackerItemCard({
       <StatusCard status={status} delay={delay}>
         <div className="flex justify-between items-start mb-1">
           <div className="font-medium text-sm">{item.name}</div>
-          {item.estimated_cost != null && (
-            <span className="text-xs font-mono text-text-secondary">
-              {formatCurrency(item.estimated_cost)}
-            </span>
-          )}
+          <div className="flex items-center gap-2">
+            {item.estimated_cost != null && (
+              <span className="text-xs font-mono text-text-secondary">
+                {formatCurrency(item.estimated_cost)}
+              </span>
+            )}
+            <button
+              onClick={() => setEditOpen(true)}
+              className="p-1 text-text-muted hover:text-accent transition-colors rounded"
+              title="Edit"
+            >
+              <Pencil className="w-3.5 h-3.5" />
+            </button>
+          </div>
         </div>
         <TypeBadge type={item.type} />
 
@@ -242,6 +270,12 @@ function TrackerItemCard({
         item={item}
         currentMileage={currentMileage}
         vehicleId={vehicleId}
+      />
+      <IntervalItemFormModal
+        open={editOpen}
+        onClose={() => setEditOpen(false)}
+        vehicleId={vehicleId}
+        initialData={item}
       />
     </>
   )
