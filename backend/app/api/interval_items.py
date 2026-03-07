@@ -8,37 +8,13 @@ from app.database import get_db
 from app.models import Vehicle, IntervalItem
 from app.models.interval_item import IntervalItemType
 from app.schemas.interval_item import IntervalItemCreate, IntervalItemUpdate, IntervalItemOut, MarkServicedRequest
+from app.services.interval_status import compute_status, item_to_out
 
 router = APIRouter()
 
-
-def _compute_status(item: IntervalItem, current_mileage: int) -> tuple[str, int | None]:
-    """Compute status and miles_remaining for an interval item."""
-    if item.type == IntervalItemType.AD_HOC:
-        # Check if scheduled
-        if item.target_miles is not None:
-            remaining = item.target_miles - current_mileage
-            threshold = item.due_soon_threshold_miles
-            if remaining <= 0:
-                return "overdue", remaining
-            elif remaining <= threshold:
-                return "due_soon", remaining
-            else:
-                return "ok", remaining
-        return "ad_hoc", None
-
-    if item.next_service_miles is None:
-        return "ok", None
-
-    remaining = item.next_service_miles - current_mileage
-    threshold = item.due_soon_threshold_miles
-
-    if remaining <= 0:
-        return "overdue", remaining
-    elif remaining <= threshold:
-        return "due_soon", remaining
-    else:
-        return "ok", remaining
+# Keep module-level aliases for backward compatibility with dashboard import
+_compute_status = compute_status
+_item_to_out = item_to_out
 
 
 async def _get_vehicle(vehicle_id: uuid.UUID, db: AsyncSession) -> Vehicle:
@@ -46,14 +22,6 @@ async def _get_vehicle(vehicle_id: uuid.UUID, db: AsyncSession) -> Vehicle:
     if not vehicle:
         raise HTTPException(404, "Vehicle not found")
     return vehicle
-
-
-def _item_to_out(item: IntervalItem, current_mileage: int) -> IntervalItemOut:
-    status, miles_remaining = _compute_status(item, current_mileage)
-    out = IntervalItemOut.model_validate(item)
-    out.status = status
-    out.miles_remaining = miles_remaining
-    return out
 
 
 @router.get("/{vehicle_id}/interval-items", response_model=list[IntervalItemOut])

@@ -33,6 +33,13 @@ services:
       db:
         condition: service_healthy
 
+  cron:
+    build:
+      context: ./cron
+    restart: unless-stopped
+    depends_on:
+      - backend
+
   nginx:
     build:
       context: .

@@ -13,6 +13,7 @@ import type {
   VehicleUpdate,
   SettingsUpdate,
   AttachmentMeta,
+  PushSubscriptionInfo,
 } from '@/types/api'
 
 const BASE = '/api/v1'
@@ -142,6 +143,17 @@ export const api = {
     getUrl: (id: string) => `${BASE}/attachments/${id}`,
     delete: (id: string) =>
       request<void>(`/attachments/${id}`, { method: 'DELETE' }),
+  },
+
+  pushSubscriptions: {
+    list: (vehicleId: string) =>
+      request<PushSubscriptionInfo[]>(`/vehicles/${vehicleId}/push-subscriptions`),
+    delete: (vehicleId: string, subId: string) =>
+      request<void>(`/vehicles/${vehicleId}/push-subscriptions/${subId}`, {
+        method: 'DELETE',
+      }),
+    sendTest: (subId: string) =>
+      request<{ status: string }>(`/push/test/${subId}`, { method: 'POST' }),
   },
 
   export: {

@@ -307,3 +307,37 @@ export function useDeleteAttachment() {
     },
   })
 }
+
+// Push subscriptions
+
+export function usePushSubscriptions(vehicleId: string | undefined) {
+  return useQuery({
+    queryKey: ['push-subscriptions', vehicleId],
+    queryFn: () => api.pushSubscriptions.list(vehicleId!),
+    enabled: !!vehicleId,
+  })
+}
+
+export function useDeletePushSubscription() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({
+      vehicleId,
+      subId,
+    }: {
+      vehicleId: string
+      subId: string
+    }) => api.pushSubscriptions.delete(vehicleId, subId),
+    onSuccess: (_data, { vehicleId }) => {
+      queryClient.invalidateQueries({
+        queryKey: ['push-subscriptions', vehicleId],
+      })
+    },
+  })
+}
+
+export function useSendTestNotification() {
+  return useMutation({
+    mutationFn: (subId: string) => api.pushSubscriptions.sendTest(subId),
+  })
+}

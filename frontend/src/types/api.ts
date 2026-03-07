@@ -103,6 +103,8 @@ export interface Settings {
   id: number
   shop_fee: number
   tax_rate: number
+  weekly_digest_enabled: boolean
+  weekly_digest_day: number
 }
 
 export type ServiceHistoryEntry =
@@ -160,6 +162,16 @@ export interface VehicleUpdate {
 export interface SettingsUpdate {
   shop_fee?: number
   tax_rate?: number
+  weekly_digest_enabled?: boolean
+  weekly_digest_day?: number
+}
+
+export interface PushSubscriptionInfo {
+  id: string
+  vehicle_id: string
+  endpoint: string
+  device_label: string | null
+  created_at: string
 }
 
 export interface AttachmentMeta {

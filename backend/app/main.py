@@ -11,12 +11,23 @@ from app.api.router import api_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Ensure default settings row exists
+    # Ensure default settings row exists and VAPID keys are generated
     async with async_session() as session:
         result = await session.execute(select(AppSettings).where(AppSettings.id == 1))
-        if result.scalar_one_or_none() is None:
-            session.add(AppSettings(id=1, shop_fee=40.00, tax_rate=0.07))
-            await session.commit()
+        app_settings = result.scalar_one_or_none()
+        if app_settings is None:
+            app_settings = AppSettings(id=1, shop_fee=40.00, tax_rate=0.07)
+            session.add(app_settings)
+            await session.flush()
+
+        # Auto-generate VAPID keys if not set
+        if not app_settings.vapid_private_key:
+            from app.services.vapid import generate_vapid_keys
+            priv, pub = generate_vapid_keys()
+            app_settings.vapid_private_key = priv
+            app_settings.vapid_public_key = pub
+
+        await session.commit()
     yield
 
 

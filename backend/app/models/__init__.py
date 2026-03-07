@@ -6,6 +6,7 @@ from app.models.observation import Observation
 from app.models.attachment import Attachment, RecordType
 from app.models.push_subscription import PushSubscription
 from app.models.app_settings import AppSettings
+from app.models.notification_log import NotificationLog
 
 __all__ = [
     "Vehicle",
@@ -18,4 +19,5 @@ __all__ = [
     "RecordType",
     "PushSubscription",
     "AppSettings",
+    "NotificationLog",
 ]

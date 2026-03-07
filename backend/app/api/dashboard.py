@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import get_db
 from app.models import Vehicle, OilChange, IntervalItem, AppSettings
 from app.models.interval_item import IntervalItemType
-from app.api.interval_items import _compute_status
+from app.services.interval_status import compute_status as _compute_status
 from app.schemas.interval_item import IntervalItemOut
 from app.schemas.vehicle import VehicleOut
 from app.schemas.dashboard import DashboardOut, MileageStats, NextOilChange, CostSummary

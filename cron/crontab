@@ -1,0 +1,2 @@
+# Check notifications daily at 8:00 AM UTC
+0 8 * * * curl -s -X POST http://backend:8000/api/v1/push/check-notifications > /proc/1/fd/1 2>&1

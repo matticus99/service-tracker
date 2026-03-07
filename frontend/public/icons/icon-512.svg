@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="#0C0F16"/>
+  <circle cx="256" cy="256" r="179.2" fill="none" stroke="#3A6FD8" stroke-width="20.48"/>
+  <g transform="translate(256, 256) scale(2)" fill="#3A6FD8">
+    <!-- Wrench icon -->
+    <path d="M-40,-80 C-70,-80 -90,-60 -90,-30 C-90,-10 -80,10 -65,20 L10,95 C15,100 25,100 30,95 L40,85 C45,80 45,70 40,65 L-35,-10 C-25,-25 -25,-45 -35,-60 C-40,-70 -40,-80 -40,-80 Z" fill="#3A6FD8"/>
+    <path d="M40,-80 C70,-80 90,-60 90,-30 C90,-10 80,10 65,20 L50,5 L70,-15 L55,-30 L35,-10 L20,-25 C30,-45 35,-65 40,-80 Z" fill="#5A8FE8"/>
+  </g>
+</svg>
