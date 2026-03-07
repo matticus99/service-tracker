@@ -7,6 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.config import settings as app_config
 from app.database import get_db
 from app.models import Vehicle, PushSubscription, AppSettings
 from app.schemas.push_subscription import PushSubscriptionCreate, PushSubscriptionOut
@@ -109,7 +110,7 @@ async def send_test_notification(subscription_id: uuid.UUID, db: AsyncSession = 
         "url": "/settings",
     }
     success = await send_push(
-        sub, payload, settings.vapid_private_key, settings.vapid_claims_email, db
+        sub, payload, settings.vapid_private_key, app_config.VAPID_CLAIMS_EMAIL, db
     )
     if not success:
         raise HTTPException(500, "Failed to send notification")

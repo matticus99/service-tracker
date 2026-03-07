@@ -30,10 +30,20 @@ from app.models import AppSettings
 _tables_created = False
 
 
+
+# Pre-generated test VAPID keys (avoids py_vapid/cryptography compatibility issues in tests)
+TEST_VAPID_PRIVATE_KEY = "dGVzdC12YXBpZC1wcml2YXRlLWtleS0xMjM0NTY3OA"
+TEST_VAPID_PUBLIC_KEY = "dGVzdC12YXBpZC1wdWJsaWMta2V5LTEyMzQ1Njc4OTAx"
+
+
 async def _seed_defaults():
-    """Seed default app_settings (mirrors app lifespan which doesn't run in tests)."""
+    """Seed default app_settings with test VAPID keys (mirrors app lifespan which doesn't run in tests)."""
     async with test_async_session() as session:
-        session.add(AppSettings(id=1, shop_fee=40.00, tax_rate=0.07))
+        session.add(AppSettings(
+            id=1, shop_fee=40.00, tax_rate=0.07,
+            vapid_private_key=TEST_VAPID_PRIVATE_KEY,
+            vapid_public_key=TEST_VAPID_PUBLIC_KEY,
+        ))
         await session.commit()
 
 
@@ -76,3 +86,65 @@ async def vehicle(client) -> dict:
     })
     assert resp.status_code == 201
     return resp.json()
+
+
+PUSH_SUBSCRIPTION_DATA = {
+    "endpoint": "https://fcm.googleapis.com/fcm/send/test-sub-123",
+    "p256dh": "BNcRdreALRFXTkOOUHK1EtK2wtaz5Ry4YfYCA_0QTpQtUbVlUls",
+    "auth": "tBHItJI5svbpC7v",
+    "device_label": "Test Chrome",
+}
+
+
+@pytest_asyncio.fixture
+async def push_subscription(client, vehicle) -> dict:
+    """Create a test push subscription and return its data dict."""
+    resp = await client.post(
+        f"/api/v1/vehicles/{vehicle['id']}/push-subscriptions",
+        json=PUSH_SUBSCRIPTION_DATA,
+    )
+    assert resp.status_code == 201
+    return resp.json()
+
+
+@pytest_asyncio.fixture
+async def interval_item_overdue(client, vehicle) -> dict:
+    """Create an overdue interval item and return its data dict."""
+    resp = await client.post(
+        f"/api/v1/vehicles/{vehicle['id']}/interval-items",
+        json={
+            "name": "Oil Change",
+            "type": "regular",
+            "next_service_miles": 185000,  # below vehicle's 191083
+            "estimated_cost": 65.0,
+            "due_soon_threshold_miles": 500,
+        },
+    )
+    assert resp.status_code == 201
+    return resp.json()
+
+
+@pytest_asyncio.fixture
+async def service_record(client, vehicle) -> dict:
+    """Create a test service record and return its data dict."""
+    resp = await client.post(
+        f"/api/v1/vehicles/{vehicle['id']}/service-records",
+        json={
+            "service_date": "2025-06-01",
+            "facility": "DIY",
+            "odometer": 190000,
+            "services_performed": ["Brake inspection"],
+        },
+    )
+    assert resp.status_code == 201
+    return resp.json()
+
+
+@pytest_asyncio.fixture
+def uploads_dir(tmp_path):
+    """Override UPLOADS_DIR to a temporary directory for attachment tests."""
+    from app.config import settings
+    original = settings.UPLOADS_DIR
+    settings.UPLOADS_DIR = str(tmp_path)
+    yield tmp_path
+    settings.UPLOADS_DIR = original
