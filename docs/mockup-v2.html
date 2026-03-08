@@ -586,6 +586,24 @@ input, select, textarea { font-family: inherit; }
 .detail-service-line:last-child { border-bottom: none; }
 .detail-service-name { font-size: 0.85rem; font-weight: 500; }
 .detail-service-cost { font-family: var(--font-mono); font-size: 0.82rem; color: var(--text-secondary); }
+.detail-cat-header {
+  font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;
+  color: var(--text-muted); padding: 10px 0 4px; margin-top: 4px;
+  display: flex; align-items: center; gap: 6px;
+}
+.detail-cat-header:first-child { padding-top: 0; margin-top: 0; }
+.detail-cat-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
+.detail-section-title-row {
+  display: flex; align-items: center; justify-content: space-between;
+}
+.btn-edit {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 0.72rem; font-weight: 500; color: var(--accent);
+  background: var(--accent-subtle); border: none; border-radius: var(--radius-sm);
+  padding: 4px 10px; cursor: pointer; transition: background 0.15s;
+}
+.btn-edit:hover { background: rgba(91, 141, 239, 0.22); }
+.btn-edit i { width: 12px; height: 12px; }
 
 /* History grid desktop */
 .history-grid { }
@@ -1246,11 +1264,21 @@ function openHistoryDetail(id) {
   const shop = SHOPS.find(s => s.name === item.shop);
   const shopAddr = shop ? shop.address : '';
 
-  let servicesHtml = item.services.map(s => `
-    <div class="detail-service-line">
-      <div><span class="detail-service-name">${s.name}</span> <span class="badge badge-cat">${s.cat}</span></div>
-      <span class="detail-service-cost">${s.cost > 0 ? '$'+s.cost.toFixed(2) : 'Incl.'}</span>
-    </div>`).join('');
+  // Group services by category
+  const catGroups = {};
+  item.services.forEach(s => {
+    if (!catGroups[s.cat]) catGroups[s.cat] = [];
+    catGroups[s.cat].push(s);
+  });
+  let servicesHtml = Object.entries(catGroups).map(([cat, svcs]) => {
+    const header = `<div class="detail-cat-header"><span class="detail-cat-dot"></span><span class="badge badge-cat">${cat}</span></div>`;
+    const lines = svcs.map(s => `
+      <div class="detail-service-line">
+        <span class="detail-service-name">${s.name}</span>
+        <span class="detail-service-cost">$${s.cost.toFixed(2)}</span>
+      </div>`).join('');
+    return header + lines;
+  }).join('');
 
   const subtotal = item.services.reduce((a,s)=>a+s.cost, 0);
   let costHtml = `
@@ -1264,7 +1292,10 @@ function openHistoryDetail(id) {
   if (item.linkedNotes.length > 0) {
     const notes = item.linkedNotes.map(nid => HISTORY_DATA.find(h=>h.id===nid)).filter(Boolean);
     linkedNotesHtml = `<div class="detail-section">
-      <div class="detail-section-title"><i data-lucide="link"></i> Linked Notes</div>
+      <div class="detail-section-title-row">
+        <div class="detail-section-title"><i data-lucide="link"></i> Linked Notes</div>
+        <button class="btn-edit" onclick="showToast('Edit mode coming soon')"><i data-lucide="pencil"></i> Edit</button>
+      </div>
       ${notes.map(n => {
         const nDate = new Date(n.date+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
         return `<div class="note-card" style="cursor:default;"><div class="note-card-header"><span class="note-card-badge"><i data-lucide="sticky-note"></i> Note</span></div><div class="note-card-text">${n.text}</div><div class="note-card-meta"><span>${nDate}</span><span>${n.miles.toLocaleString()} mi</span></div></div>`;
@@ -1283,7 +1314,10 @@ function openHistoryDetail(id) {
       ${shopAddr ? `<div style="font-size:0.75rem;color:var(--text-muted);margin-top:2px;">${shopAddr}</div>` : ''}
     </div>
     <div class="detail-section">
-      <div class="detail-section-title"><i data-lucide="wrench"></i> Services Performed</div>
+      <div class="detail-section-title-row">
+        <div class="detail-section-title"><i data-lucide="wrench"></i> Services Performed</div>
+        <button class="btn-edit" onclick="showToast('Edit mode coming soon')"><i data-lucide="pencil"></i> Edit</button>
+      </div>
       ${servicesHtml}
     </div>
     <div class="detail-section">
@@ -1291,7 +1325,7 @@ function openHistoryDetail(id) {
       ${costHtml}
     </div>
     ${linkedNotesHtml}
-    ${item.notes ? `<div class="detail-section"><div class="detail-section-title"><i data-lucide="file-text"></i> Record Notes</div><p style="font-size:0.85rem;color:var(--text-secondary);line-height:1.5;">${item.notes}</p></div>` : ''}
+    ${item.notes ? `<div class="detail-section"><div class="detail-section-title-row"><div class="detail-section-title"><i data-lucide="file-text"></i> Record Notes</div><button class="btn-edit" onclick="showToast('Edit mode coming soon')"><i data-lucide="pencil"></i> Edit</button></div><p style="font-size:0.85rem;color:var(--text-secondary);line-height:1.5;">${item.notes}</p></div>` : ''}
     <div class="detail-section">
       <div class="detail-section-title"><i data-lucide="paperclip"></i> Attachments</div>
       <p style="font-size:0.82rem;color:var(--text-muted);font-style:italic;">No attachments</p>
