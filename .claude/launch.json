@@ -1,0 +1,24 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "frontend",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["node_modules/vite/bin/vite.js"],
+      "port": 5173,
+      "cwd": "frontend"
+    },
+    {
+      "name": "backend",
+      "runtimeExecutable": "docker",
+      "runtimeArgs": ["compose", "up", "db", "backend"],
+      "port": 8000
+    },
+    {
+      "name": "mockup",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["node_modules/serve/build/main.js", "docs", "-l", "3333", "--no-clipboard"],
+      "port": 3333
+    }
+  ]
+}

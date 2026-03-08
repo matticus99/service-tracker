@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vehicle Service Tracker v2 — UI Mockup</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@latest"></script>
+<style>
+/* ============================================
+   DESIGN SYSTEM
+   ============================================ */
+:root {
+  --bg-body: #0C0F16;
+  --bg-surface: #131720;
+  --bg-card: #1A1F2C;
+  --bg-card-hover: #20263A;
+  --bg-elevated: #242B3D;
+  --bg-input: #141822;
+  --border: #272E42;
+  --border-subtle: #1D2336;
+  --text-primary: #E4E8F1;
+  --text-secondary: #9BA3B8;
+  --text-muted: #6B7590;
+  --text-inverse: #0C0F16;
+  --accent: #5B8DEF;
+  --accent-hover: #4A7CE0;
+  --accent-subtle: rgba(91, 141, 239, 0.12);
+  --overdue: #F04444;
+  --overdue-subtle: rgba(240, 68, 68, 0.13);
+  --overdue-border: rgba(240, 68, 68, 0.5);
+  --due-soon: #EAB308;
+  --due-soon-subtle: rgba(234, 179, 8, 0.13);
+  --due-soon-border: rgba(234, 179, 8, 0.5);
+  --ok: #22C55E;
+  --ok-subtle: rgba(34, 197, 94, 0.13);
+  --ok-border: rgba(34, 197, 94, 0.5);
+  --adhoc: #64748B;
+  --adhoc-subtle: rgba(100, 116, 139, 0.13);
+  --adhoc-border: rgba(100, 116, 139, 0.5);
+  --progress-track: #1A2030;
+  --topbar-h: 56px;
+  --tabbar-h: 60px;
+  --sidebar-w: 220px;
+  --radius-sm: 6px;
+  --radius: 10px;
+  --radius-lg: 14px;
+  --radius-pill: 50px;
+  --font: 'Outfit', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+}
+
+/* ============================================
+   RESET & BASE
+   ============================================ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 15px; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+body {
+  font-family: var(--font);
+  background: var(--bg-body);
+  color: var(--text-primary);
+  min-height: 100dvh;
+  overflow: hidden;
+}
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.018;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 200px;
+  z-index: 9999;
+}
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #272E42; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #4F5770; }
+a { color: var(--accent); text-decoration: none; }
+button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; }
+input, select, textarea { font-family: inherit; }
+
+/* ============================================
+   APP SHELL
+   ============================================ */
+#app { display: flex; height: 100dvh; overflow: hidden; }
+
+/* Sidebar (desktop) */
+#sidebar {
+  display: none;
+  flex-direction: column;
+  width: var(--sidebar-w);
+  background: var(--bg-surface);
+  border-right: 1px solid var(--border-subtle);
+  flex-shrink: 0;
+}
+.sidebar-brand {
+  display: flex; align-items: center; gap: 10px;
+  padding: 20px 20px 28px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.sidebar-brand i { width: 28px; height: 28px; color: var(--accent); flex-shrink: 0; }
+.sidebar-brand span {
+  font-weight: 700; font-size: 1.05rem; letter-spacing: -0.02em;
+  background: linear-gradient(135deg, var(--accent), #a78bfa);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+.sidebar-nav {
+  display: flex; flex-direction: column;
+  padding: 12px 10px; gap: 2px; flex: 1;
+}
+.sidebar-nav a {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 14px; border-radius: var(--radius);
+  color: var(--text-secondary); font-weight: 500; font-size: 0.9rem;
+  transition: all 0.2s; cursor: pointer;
+}
+.sidebar-nav a:hover { background: var(--bg-card); color: var(--text-primary); }
+.sidebar-nav a.active { background: var(--accent-subtle); color: var(--accent); }
+.sidebar-nav a i { width: 20px; height: 20px; flex-shrink: 0; }
+.sidebar-nav .sidebar-settings {
+  margin-top: auto; border-top: 1px solid var(--border-subtle); padding-top: 12px;
+}
+
+/* Main content */
+#main { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0; }
+
+/* Top Bar */
+#topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  height: var(--topbar-h); padding: 0 16px;
+  background: var(--bg-surface); border-bottom: 1px solid var(--border-subtle);
+  flex-shrink: 0; z-index: 10;
+}
+.topbar-left { display: flex; align-items: center; gap: 12px; }
+.topbar-right { display: flex; align-items: center; gap: 4px; }
+.vehicle-chip {
+  display: flex; align-items: center; gap: 8px;
+  padding: 5px 12px; background: var(--bg-card);
+  border: 1px solid var(--border); border-radius: var(--radius-pill);
+  cursor: pointer; transition: border-color 0.2s;
+}
+.vehicle-chip:hover { border-color: var(--accent); }
+.vehicle-chip .v-name { font-weight: 600; font-size: 0.85rem; }
+.vehicle-chip .v-mi { font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-secondary); font-weight: 500; }
+.vehicle-chip .v-arrow { color: var(--text-muted); font-size: 0.65rem; margin-left: 2px; }
+.topbar-btn {
+  width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;
+  border-radius: var(--radius); transition: background 0.2s;
+}
+.topbar-btn:hover { background: var(--bg-card); }
+.topbar-btn i { width: 20px; height: 20px; color: var(--text-secondary); }
+
+/* Screens */
+#screens { flex: 1; overflow-y: auto; overflow-x: hidden; scroll-behavior: smooth; }
+.screen {
+  display: none; padding: 16px;
+  padding-bottom: calc(var(--tabbar-h) + 24px);
+  animation: screenIn 0.35s ease-out;
+}
+.screen.active { display: block; }
+@keyframes screenIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Bottom Tab Bar (mobile) */
+#tabbar {
+  display: flex; align-items: stretch;
+  height: var(--tabbar-h); background: var(--bg-surface);
+  border-top: 1px solid var(--border-subtle);
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+.tab {
+  flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 3px; color: var(--text-muted); font-size: 0.65rem; font-weight: 600;
+  letter-spacing: 0.03em; text-transform: uppercase; transition: color 0.2s; position: relative;
+}
+.tab i { width: 22px; height: 22px; }
+.tab.active { color: var(--accent); }
+.tab.active::before {
+  content: ''; position: absolute; top: 0; left: 25%; right: 25%;
+  height: 2.5px; background: var(--accent); border-radius: 0 0 2px 2px;
+}
+.tab:hover { color: var(--text-secondary); }
+.tab-badge {
+  position: absolute; top: 4px; right: calc(50% - 18px);
+  background: var(--overdue); color: white; font-size: 0.55rem; font-weight: 700;
+  min-width: 16px; height: 16px; display: flex; align-items: center; justify-content: center;
+  border-radius: 8px; padding: 0 4px;
+}
+
+/* ============================================
+   CARD SYSTEM
+   ============================================ */
+.card {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); padding: 16px; margin-bottom: 12px;
+  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+}
+.card-clickable:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+  border-color: color-mix(in srgb, var(--accent) 30%, var(--border));
+  cursor: pointer;
+}
+.card-header {
+  display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;
+}
+.card-title {
+  font-weight: 700; font-size: 0.85rem; letter-spacing: -0.01em;
+  color: var(--text-secondary); text-transform: uppercase;
+  display: flex; align-items: center; gap: 8px;
+}
+.card-title i { width: 16px; height: 16px; }
+.card-status { border-left: 3.5px solid; padding-left: 14px; }
+.card-status.overdue { border-left-color: var(--overdue); }
+.card-status.due-soon { border-left-color: var(--due-soon); }
+.card-status.ok { border-left-color: var(--ok); }
+.card-status.adhoc { border-left-color: var(--adhoc); }
+.card-animate { opacity: 0; transform: translateY(16px); animation: cardIn 0.4s ease-out forwards; }
+@keyframes cardIn { to { opacity: 1; transform: translateY(0); } }
+
+/* ============================================
+   SECTION HEADERS
+   ============================================ */
+.section-header {
+  display: flex; align-items: center; gap: 10px; margin: 20px 0 12px; cursor: default;
+}
+.section-header.collapsible { cursor: pointer; }
+.section-header.collapsible:hover .section-chevron { color: var(--text-primary); }
+.section-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.section-dot.overdue { background: var(--overdue); animation: pulse-overdue 2.5s ease-in-out infinite; }
+.section-dot.due-soon { background: var(--due-soon); }
+.section-dot.ok { background: var(--ok); }
+.section-dot.adhoc { background: var(--adhoc); }
+@keyframes pulse-overdue {
+  0%, 100% { box-shadow: 0 0 4px var(--overdue-border); }
+  50% { box-shadow: 0 0 12px var(--overdue-border), 0 0 24px rgba(240, 68, 68, 0.15); }
+}
+.section-label { font-weight: 700; font-size: 0.8rem; letter-spacing: 0.04em; text-transform: uppercase; }
+.section-count { font-size: 0.75rem; color: var(--text-muted); font-weight: 500; }
+.section-chevron {
+  margin-left: auto; color: var(--text-muted);
+  transition: transform 0.25s, color 0.2s; font-size: 0.8rem;
+}
+.section-header.collapsed .section-chevron { transform: rotate(-90deg); }
+.section-content {
+  overflow: hidden; transition: max-height 0.35s ease, opacity 0.25s;
+  max-height: 2000px; opacity: 1;
+}
+.section-content.collapsed { max-height: 0; opacity: 0; }
+
+/* ============================================
+   PROGRESS BAR
+   ============================================ */
+.progress-bar {
+  height: 6px; background: var(--progress-track); border-radius: 3px;
+  overflow: visible; margin-top: 8px; position: relative;
+}
+.progress-fill {
+  height: 100%; border-radius: 3px; transition: width 1s ease-out;
+  position: relative; min-width: 4px;
+}
+.progress-fill.overdue { background: linear-gradient(90deg, var(--overdue), #ff6b6b); border-radius: 3px 0 0 3px; }
+.progress-fill.due-soon { background: linear-gradient(90deg, var(--due-soon), #fbbf24); }
+.progress-fill.ok { background: linear-gradient(90deg, var(--ok), #4ade80); }
+.progress-bar .progress-marker {
+  position: absolute; right: 0; top: -4px; bottom: -4px;
+  width: 2px; background: var(--text-muted); border-radius: 1px;
+}
+
+/* ============================================
+   DASHBOARD
+   ============================================ */
+.vehicle-hero {
+  display: flex; align-items: center; gap: 16px; text-align: left;
+  padding: 16px; background: linear-gradient(180deg, var(--bg-elevated), var(--bg-card));
+  border-radius: var(--radius-lg); border: 1px solid var(--border);
+  margin-bottom: 12px; position: relative; overflow: hidden;
+}
+.vehicle-hero::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: linear-gradient(90deg, var(--accent), #a78bfa, var(--accent));
+}
+.vehicle-thumb {
+  width: 96px; height: 96px; border-radius: var(--radius);
+  background: var(--bg-body); border: 1px solid var(--border); flex-shrink: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  overflow: hidden; position: relative; cursor: pointer;
+}
+.vehicle-thumb i { width: 40px; height: 40px; color: var(--text-muted); }
+.vehicle-thumb-label { font-size: 0.55rem; color: var(--text-muted); margin-top: 4px; text-transform: uppercase; font-weight: 600; }
+.vehicle-info { flex: 1; min-width: 0; }
+.vehicle-year-make { font-size: 0.75rem; color: var(--text-secondary); font-weight: 500; }
+.vehicle-model { font-size: 1.3rem; font-weight: 800; letter-spacing: -0.03em; margin: 2px 0; }
+.vehicle-mileage { font-family: var(--font-mono); font-size: 1.7rem; font-weight: 600; color: var(--accent); letter-spacing: -0.02em; }
+.vehicle-mileage-label { font-size: 0.7rem; color: var(--text-muted); font-weight: 500; }
+
+.quick-actions { margin-bottom: 12px; }
+.btn-primary {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 10px 20px; background: var(--accent); color: white;
+  border-radius: var(--radius); font-weight: 600; font-size: 0.85rem;
+  transition: background 0.2s, transform 0.1s;
+}
+.btn-primary:hover { background: var(--accent-hover); }
+.btn-primary:active { transform: scale(0.97); }
+.btn-primary i { width: 18px; height: 18px; }
+
+.dash-grid { display: grid; gap: 12px; }
+.dash-primary-row { display: grid; gap: 12px; }
+
+/* Upcoming card */
+.upcoming-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 0; border-bottom: 1px solid var(--border-subtle);
+}
+.upcoming-item:last-child { border-bottom: none; padding-bottom: 0; }
+.upcoming-item:first-child { padding-top: 0; }
+.upcoming-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.upcoming-dot.overdue { background: var(--overdue); box-shadow: 0 0 6px var(--overdue-border); }
+.upcoming-dot.due-soon { background: var(--due-soon); }
+.upcoming-dot.ok { background: var(--ok); }
+.upcoming-info { flex: 1; min-width: 0; }
+.upcoming-name { font-weight: 600; font-size: 0.85rem; }
+.upcoming-cost { color: var(--text-muted); font-weight: 400; margin-left: 6px; }
+.upcoming-cat { font-size: 0.7rem; color: var(--text-muted); margin-top: 1px; }
+.upcoming-miles { font-family: var(--font-mono); font-size: 0.75rem; font-weight: 500; text-align: right; white-space: nowrap; }
+.upcoming-miles.overdue { color: var(--overdue); }
+.upcoming-miles.due-soon { color: var(--due-soon); }
+.upcoming-miles.ok { color: var(--ok); }
+.upcoming-progress { width: 100%; margin-top: 4px; }
+.upcoming-progress .progress-bar { height: 4px; margin-top: 4px; }
+
+/* Attention card */
+.attention-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 0; cursor: pointer; transition: background 0.2s;
+}
+.attention-row:hover { background: var(--bg-card-hover); margin: 0 -8px; padding: 8px; border-radius: var(--radius-sm); }
+.attention-icon { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.attention-icon.overdue { background: var(--overdue-subtle); color: var(--overdue); }
+.attention-icon.due-soon { background: var(--due-soon-subtle); color: var(--due-soon); }
+.attention-icon i { width: 16px; height: 16px; }
+.attention-text { flex: 1; font-size: 0.8rem; }
+.attention-text strong { font-weight: 600; }
+.attention-arrow { color: var(--text-muted); font-size: 0.7rem; }
+.attention-arrow i { width: 14px; height: 14px; }
+
+/* Stat items */
+.stat-row { display: flex; align-items: baseline; gap: 8px; margin-bottom: 10px; }
+.stat-row:last-child { margin-bottom: 0; }
+.stat-value { font-family: var(--font-mono); font-size: 1.2rem; font-weight: 700; }
+.stat-label { font-size: 0.75rem; color: var(--text-secondary); }
+.stat-sub { font-size: 0.7rem; color: var(--text-muted); margin-top: 2px; }
+
+/* Upcoming costs card */
+.cost-line {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 0; font-size: 0.9rem;
+}
+.cost-line-label { color: var(--text-primary); }
+.cost-line-value { font-family: var(--font-mono); font-size: 0.85rem; font-weight: 500; color: var(--text-primary); }
+.cost-divider {
+  border-top: 1px dashed var(--border); margin: 4px 0;
+}
+.cost-total {
+  padding-top: 10px; margin-top: 2px;
+}
+.cost-total .cost-line-label { font-weight: 800; font-size: 1rem; }
+.cost-total .cost-line-value { font-weight: 700; font-size: 0.95rem; }
+
+/* ============================================
+   BADGES
+   ============================================ */
+.badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px 8px; border-radius: var(--radius-pill);
+  font-size: 0.65rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em;
+}
+.badge-overdue { background: var(--overdue-subtle); color: var(--overdue); border: 1px solid var(--overdue-border); }
+.badge-due-soon { background: var(--due-soon-subtle); color: var(--due-soon); border: 1px solid var(--due-soon-border); }
+.badge-ok { background: var(--ok-subtle); color: var(--ok); border: 1px solid var(--ok-border); }
+.badge-adhoc { background: var(--adhoc-subtle); color: var(--adhoc); border: 1px solid var(--adhoc-border); }
+.badge-cat {
+  background: var(--accent-subtle); color: var(--accent);
+  border: 1px solid rgba(91, 141, 239, 0.3);
+}
+
+/* ============================================
+   MODAL SYSTEM
+   ============================================ */
+.modal-overlay {
+  display: none; position: fixed; inset: 0; z-index: 200;
+  background: rgba(0,0,0,0.6); backdrop-filter: blur(8px);
+  align-items: center; justify-content: center;
+  padding: 16px;
+}
+.modal-overlay.active { display: flex; }
+.modal {
+  background: var(--bg-surface); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); width: 100%; max-width: 600px;
+  max-height: 90vh; overflow-y: auto; position: relative;
+  animation: modalIn 0.3s ease-out;
+}
+.modal-full {
+  max-width: 100%; max-height: 100%; height: 100%; border-radius: 0;
+}
+@keyframes modalIn {
+  from { opacity: 0; transform: translateY(20px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.modal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 20px; border-bottom: 1px solid var(--border-subtle);
+  position: sticky; top: 0; background: var(--bg-surface); z-index: 1;
+}
+.modal-title { font-weight: 700; font-size: 1rem; }
+.modal-close {
+  width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
+  border-radius: var(--radius); transition: background 0.2s;
+}
+.modal-close:hover { background: var(--bg-card); }
+.modal-close i { width: 20px; height: 20px; color: var(--text-secondary); }
+.modal-body { padding: 20px; }
+.modal-footer {
+  display: flex; gap: 10px; justify-content: flex-end;
+  padding: 16px 20px; border-top: 1px solid var(--border-subtle);
+}
+.btn-secondary {
+  padding: 8px 16px; background: var(--bg-card); color: var(--text-secondary);
+  border: 1px solid var(--border); border-radius: var(--radius);
+  font-weight: 500; font-size: 0.85rem; transition: all 0.2s;
+}
+.btn-secondary:hover { background: var(--bg-elevated); color: var(--text-primary); }
+
+/* ============================================
+   FORM ELEMENTS
+   ============================================ */
+.form-group { margin-bottom: 16px; }
+.form-label {
+  display: block; font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);
+  text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 6px;
+}
+.form-input, .form-select, .form-textarea {
+  width: 100%; padding: 10px 12px; background: var(--bg-input);
+  border: 1px solid var(--border); border-radius: var(--radius);
+  color: var(--text-primary); font-size: 0.85rem; transition: border-color 0.2s;
+}
+.form-input:focus, .form-select:focus, .form-textarea:focus {
+  outline: none; border-color: var(--accent);
+}
+.form-select { cursor: pointer; appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23828BA3' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 12px center;
+  padding-right: 32px;
+}
+.form-textarea { resize: vertical; min-height: 80px; }
+
+/* ============================================
+   TOAST
+   ============================================ */
+.toast {
+  position: fixed; bottom: calc(var(--tabbar-h) + 16px); left: 50%;
+  transform: translateX(-50%) translateY(100px); opacity: 0;
+  background: var(--bg-elevated); color: var(--text-primary);
+  padding: 10px 20px; border-radius: var(--radius-pill);
+  border: 1px solid var(--border); font-size: 0.8rem; font-weight: 500;
+  display: flex; align-items: center; gap: 8px;
+  z-index: 500; transition: transform 0.4s, opacity 0.4s;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+}
+.toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+.toast-icon { color: var(--ok); }
+
+/* ============================================
+   RESPONSIVE — DESKTOP
+   ============================================ */
+@media (min-width: 768px) {
+  .dash-primary-row { grid-template-columns: 1fr 1fr; }
+}
+@media (min-width: 1024px) {
+  #sidebar { display: flex; }
+  #tabbar { display: none; }
+  .screen { padding: 24px 32px; padding-bottom: 32px; }
+  .quick-actions { max-width: 400px; }
+  .dash-primary-row { grid-template-columns: 1fr 1fr 1fr; }
+  .dash-secondary-row { grid-template-columns: 1fr 1fr; }
+  .vehicle-hero { padding: 20px; }
+  .vehicle-thumb { width: 110px; height: 110px; }
+  .vehicle-mileage { font-size: 2rem; }
+  .modal-full { max-width: 600px; max-height: 90vh; height: auto; border-radius: var(--radius-lg); }
+}
+@media (min-width: 1280px) {
+  .dash-primary-row { grid-template-columns: 1.2fr 1fr 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div id="app">
+  <!-- SIDEBAR (Desktop) -->
+  <aside id="sidebar">
+    <div class="sidebar-brand">
+      <i data-lucide="wrench"></i>
+      <span>ServiceTracker</span>
+    </div>
+    <nav class="sidebar-nav">
+      <a class="active" data-screen="dashboard" onclick="switchScreen('dashboard')">
+        <i data-lucide="layout-dashboard"></i> Dashboard
+      </a>
+      <a data-screen="history" onclick="switchScreen('history')">
+        <i data-lucide="clock"></i> History
+      </a>
+      <a data-screen="tracker" onclick="switchScreen('tracker')">
+        <i data-lucide="gauge"></i> Tracker
+      </a>
+      <a data-screen="shops" onclick="switchScreen('shops')">
+        <i data-lucide="store"></i> Shops
+      </a>
+      <a class="sidebar-settings" data-screen="settings" onclick="switchScreen('settings')">
+        <i data-lucide="settings"></i> Settings
+      </a>
+    </nav>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <div id="main">
+    <!-- Top Bar -->
+    <header id="topbar">
+      <div class="topbar-left">
+        <div class="vehicle-chip" onclick="showToast('Vehicle selector — single vehicle mode')">
+          <span class="v-name">2016 Tacoma</span>
+          <span class="v-mi">191,083 mi</span>
+          <span class="v-arrow">&#9662;</span>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <button class="topbar-btn" onclick="switchScreen('settings')" title="Settings">
+          <i data-lucide="settings"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- Screens Container -->
+    <div id="screens">
+
+      <!-- ============================
+           DASHBOARD
+           ============================ -->
+      <div id="screen-dashboard" class="screen active">
+        <!-- Vehicle Hero -->
+        <div class="vehicle-hero card-animate">
+          <div class="vehicle-thumb">
+            <i data-lucide="truck"></i>
+            <span class="vehicle-thumb-label">Photo</span>
+          </div>
+          <div class="vehicle-info">
+            <div class="vehicle-year-make">2016 Toyota</div>
+            <div class="vehicle-model">Tacoma TRD Sport</div>
+            <div class="vehicle-mileage">191,083</div>
+            <div class="vehicle-mileage-label">miles</div>
+          </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="quick-actions card-animate" style="animation-delay: 0.05s">
+          <button class="btn-primary" onclick="openModal('add-service-modal')">
+            <i data-lucide="plus"></i> Add Service Record
+          </button>
+        </div>
+
+        <!-- Primary Row -->
+        <div class="dash-primary-row">
+          <!-- Top 3 Upcoming -->
+          <div class="card card-animate" style="animation-delay: 0.1s">
+            <div class="card-header">
+              <span class="card-title"><i data-lucide="clock"></i> Upcoming <span style="color:var(--text-muted); font-weight:500; font-size:0.8rem;">($384.00)</span></span>
+              <span style="font-size:0.7rem; color:var(--text-muted); cursor:pointer;" onclick="switchScreen('tracker')">View all &rarr;</span>
+            </div>
+            <div class="upcoming-item" onclick="switchScreen('tracker')">
+              <span class="upcoming-dot overdue"></span>
+              <div class="upcoming-info">
+                <div class="upcoming-name">Transmission Fluid Service <span class="upcoming-cost">($195.00)</span></div>
+                <div class="upcoming-cat">Drivetrain</div>
+              </div>
+              <div>
+                <div class="upcoming-miles overdue">583 mi over</div>
+                <div class="upcoming-progress">
+                  <div class="progress-bar"><div class="progress-fill overdue" data-width="100%" style="width:0%"></div><div class="progress-marker"></div></div>
+                </div>
+              </div>
+            </div>
+            <div class="upcoming-item" onclick="switchScreen('tracker')">
+              <span class="upcoming-dot due-soon"></span>
+              <div class="upcoming-info">
+                <div class="upcoming-name">Oil &amp; Filter Change <span class="upcoming-cost">($65.00)</span></div>
+                <div class="upcoming-cat">Engine &amp; Lubrication</div>
+              </div>
+              <div>
+                <div class="upcoming-miles due-soon">2,238 mi left</div>
+                <div class="upcoming-progress">
+                  <div class="progress-bar"><div class="progress-fill due-soon" data-width="55%" style="width:0%"></div></div>
+                </div>
+              </div>
+            </div>
+            <div class="upcoming-item" onclick="switchScreen('tracker')">
+              <span class="upcoming-dot due-soon"></span>
+              <div class="upcoming-info">
+                <div class="upcoming-name">Brake Pad Replacement <span class="upcoming-cost">($124.00)</span></div>
+                <div class="upcoming-cat">Brake System</div>
+              </div>
+              <div>
+                <div class="upcoming-miles due-soon">1,915 mi left</div>
+                <div class="upcoming-progress">
+                  <div class="progress-bar"><div class="progress-fill due-soon" data-width="80%" style="width:0%"></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Attention Card -->
+          <div class="card card-animate" style="animation-delay: 0.15s">
+            <div class="card-header">
+              <span class="card-title"><i data-lucide="alert-triangle"></i> Needs Attention</span>
+            </div>
+            <div class="attention-row" onclick="switchScreen('tracker')">
+              <div class="attention-icon overdue"><i data-lucide="alert-circle"></i></div>
+              <div class="attention-text"><strong>1 overdue</strong> service</div>
+              <div class="attention-arrow"><i data-lucide="chevron-right"></i></div>
+            </div>
+            <div class="attention-row" onclick="switchScreen('tracker')">
+              <div class="attention-icon due-soon"><i data-lucide="clock"></i></div>
+              <div class="attention-text"><strong>3 due soon</strong> services</div>
+              <div class="attention-arrow"><i data-lucide="chevron-right"></i></div>
+            </div>
+          </div>
+
+          <!-- Upcoming Costs -->
+          <div class="card card-animate" style="animation-delay: 0.2s">
+            <div class="card-header">
+              <span class="card-title"><i data-lucide="dollar-sign"></i> Upcoming Costs</span>
+            </div>
+            <div class="cost-line">
+              <span class="cost-line-label">Overdue (1)</span>
+              <span class="cost-line-value">$195.00</span>
+            </div>
+            <div class="cost-line">
+              <span class="cost-line-label">Due Soon (2)</span>
+              <span class="cost-line-value">$189.00</span>
+            </div>
+            <div class="cost-divider"></div>
+            <div class="cost-line">
+              <span class="cost-line-label" style="color:var(--text-muted);">Shop Fee</span>
+              <span class="cost-line-value" style="color:var(--text-muted);">&mdash;</span>
+            </div>
+            <div class="cost-line">
+              <span class="cost-line-label" style="color:var(--text-muted);">Tax</span>
+              <span class="cost-line-value" style="color:var(--text-muted);">&mdash;</span>
+            </div>
+            <div class="cost-line cost-total">
+              <span class="cost-line-label">Total</span>
+              <span class="cost-line-value">$384.00</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Secondary Row -->
+        <div class="dash-secondary-row dash-primary-row" style="margin-top: 0;">
+          <!-- Mileage Stats -->
+          <div class="card card-animate" style="animation-delay: 0.25s">
+            <div class="card-header">
+              <span class="card-title"><i data-lucide="trending-up"></i> Mileage</span>
+              <button class="topbar-btn" onclick="showToast('Update mileage')"><i data-lucide="edit-3"></i></button>
+            </div>
+            <div class="stat-row">
+              <span class="stat-value">191,083</span>
+              <span class="stat-label">current</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-value" style="font-size: 1rem;">~1,200</span>
+              <span class="stat-label">mi / month avg</span>
+            </div>
+            <div class="stat-sub">Last updated: Jan 15, 2026</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================
+           HISTORY (placeholder)
+           ============================ -->
+      <div id="screen-history" class="screen">
+        <div class="card"><div class="card-header"><span class="card-title">History</span></div>
+        <p style="color: var(--text-secondary); font-size: 0.85rem;">Phase 2 — Coming next</p></div>
+      </div>
+
+      <!-- ============================
+           TRACKER (placeholder)
+           ============================ -->
+      <div id="screen-tracker" class="screen">
+        <div class="card"><div class="card-header"><span class="card-title">Tracker</span></div>
+        <p style="color: var(--text-secondary); font-size: 0.85rem;">Phase 3 — Coming soon</p></div>
+      </div>
+
+      <!-- ============================
+           SHOPS (placeholder)
+           ============================ -->
+      <div id="screen-shops" class="screen">
+        <div class="card"><div class="card-header"><span class="card-title">Shops</span></div>
+        <p style="color: var(--text-secondary); font-size: 0.85rem;">Phase 4 — Coming soon</p></div>
+      </div>
+
+      <!-- ============================
+           SETTINGS (placeholder)
+           ============================ -->
+      <div id="screen-settings" class="screen">
+        <div class="card"><div class="card-header"><span class="card-title">Settings</span></div>
+        <p style="color: var(--text-secondary); font-size: 0.85rem;">Settings placeholder</p></div>
+      </div>
+
+    </div><!-- /screens -->
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<!-- Tab Bar (Mobile) -->
+<nav id="tabbar">
+  <button class="tab active" data-screen="dashboard" onclick="switchScreen('dashboard')">
+    <i data-lucide="layout-dashboard"></i> DASH
+  </button>
+  <button class="tab" data-screen="history" onclick="switchScreen('history')">
+    <i data-lucide="clock"></i> HISTORY
+    <span class="tab-badge">1</span>
+  </button>
+  <button class="tab" data-screen="tracker" onclick="switchScreen('tracker')">
+    <i data-lucide="gauge"></i> TRACKER
+  </button>
+  <button class="tab" data-screen="shops" onclick="switchScreen('shops')">
+    <i data-lucide="store"></i> SHOPS
+  </button>
+</nav>
+
+<!-- Toast -->
+<div class="toast" id="toast">
+  <span class="toast-icon">&#10003;</span>
+  <span id="toast-text">Success</span>
+</div>
+
+<!-- ============================
+     ADD SERVICE RECORD MODAL (placeholder shell)
+     ============================ -->
+<div class="modal-overlay" id="add-service-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Add Service Record</span>
+      <button class="modal-close" onclick="closeModal('add-service-modal')"><i data-lucide="x"></i></button>
+    </div>
+    <div class="modal-body">
+      <p style="color: var(--text-secondary); font-size: 0.85rem;">Phase 4 — Form coming soon</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeModal('add-service-modal')">Cancel</button>
+      <button class="btn-primary" onclick="closeModal('add-service-modal'); showToast('Service record saved!')">Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============================================
+   DATA
+   ============================================ */
+const CATEGORIES = {
+  'Brake System': ['Brake Fluid Exchange','Brake Line Inspection & Repair','Brake Pad Replacement','Brake Rotor Resurfacing/Replacement'],
+  'Climate Control': ['A/C Recharge & Diagnostic'],
+  'Cooling System': ['Coolant Flush & Exchange','Radiator Hose Replacement','Thermostat Replacement','Water Pump Replacement'],
+  'Drivetrain': ['Clutch Replacement (Manual)','CV Axle/Joint Replacement','Differential Fluid Service','Transfer Case Fluid Service','Transmission Fluid Service'],
+  'Electrical System': ['Alternator Replacement','Battery Testing & Replacement','Exterior Light Bulb Replacement','Starter Motor Replacement'],
+  'Engine & Lubrication': ['Oil & Filter Change'],
+  'Engine & Mechanical': ['Drive Belt Tensioner Replacement','Engine Mount Replacement','Serpentine Belt Replacement','Timing Belt/Chain Replacement','Valve Cover Gasket Replacement'],
+  'Exhaust & Emissions': ['Catalytic Converter Replacement','EVAP System Repair','Exhaust Muffler Replacement','Oxygen (O2) Sensor Replacement','PCV Valve Replacement'],
+  'Filtration Systems': ['Cabin Air Filter Replacement','Engine Air Filter Replacement'],
+  'Fuel System': ['Fuel Filter Replacement','Fuel Injector Cleaning','Fuel Pump Replacement'],
+  'General Maintenance': ['Multi-Point Safety Inspection'],
+  'Ignition System': ['Ignition Coil Replacement','Spark Plug Replacement'],
+  'Steering & Suspension': ['Ball Joint Replacement','Control Arm Replacement','Power Steering Fluid Flush','Shock & Strut Replacement','Sway Bar Link Replacement','Tie Rod End Replacement','Wheel Alignment'],
+  'Tires & Wheels': ['Tire Pressure Monitoring (TPMS) Service','Tire Rotation','Wheel Balancing','Wheel Bearing Replacement'],
+  'Visibility & Safety': ['Windshield Washer Pump Replacement','Windshield Wiper Replacement']
+};
+
+const SHOPS = [
+  { id: 1, name: 'Bass Auto Care', address: '4521 Elm Street, Springfield', phone: '(555) 234-5678', website: 'bassautocare.com', hours: 'Mon-Fri 8am-6pm, Sat 9am-2pm', records: 8 },
+  { id: 2, name: 'Take 5 Oil Change', address: '1200 Commerce Blvd, Springfield', phone: '(555) 345-6789', website: 'take5.com', hours: 'Mon-Sat 8am-6pm, Sun 10am-4pm', records: 4 },
+  { id: 3, name: 'Discount Tire', address: '890 Parkway Dr, Springfield', phone: '(555) 456-7890', website: 'discounttire.com', hours: 'Mon-Fri 8am-6pm, Sat 8am-5pm', records: 2 },
+  { id: 4, name: 'DIY (Self)', address: 'Home Garage', phone: '', website: '', hours: '', records: 5 }
+];
+
+/* ============================================
+   NAVIGATION
+   ============================================ */
+function switchScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  const target = document.getElementById('screen-' + id);
+  if (target) target.classList.add('active');
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll(`[data-screen="${id}"]`).forEach(t => t.classList.add('active'));
+  document.querySelectorAll('.sidebar-nav a').forEach(a => a.classList.remove('active'));
+  document.querySelectorAll(`.sidebar-nav [data-screen="${id}"]`).forEach(a => a.classList.add('active'));
+  if (id === 'tracker' || id === 'dashboard') {
+    setTimeout(animateProgressBars, 100);
+  }
+  if (target) {
+    target.querySelectorAll('.card-animate').forEach(card => {
+      card.style.animation = 'none';
+      card.offsetHeight;
+      card.style.animation = '';
+    });
+  }
+}
+
+/* ============================================
+   COLLAPSIBLE SECTIONS
+   ============================================ */
+function toggleSection(header) {
+  header.classList.toggle('collapsed');
+  const content = header.nextElementSibling;
+  content.classList.toggle('collapsed');
+  if (!content.classList.contains('collapsed')) {
+    setTimeout(() => {
+      content.querySelectorAll('.progress-fill').forEach(bar => {
+        const target = bar.getAttribute('data-width');
+        if (target) bar.style.width = target;
+      });
+    }, 50);
+  }
+}
+
+/* ============================================
+   PROGRESS BARS
+   ============================================ */
+function animateProgressBars() {
+  document.querySelectorAll('.screen.active .progress-fill').forEach(bar => {
+    const w = bar.getAttribute('data-width');
+    if (w) { bar.style.width = '0%'; setTimeout(() => { bar.style.width = w; }, 50); }
+  });
+}
+
+/* ============================================
+   MODAL
+   ============================================ */
+function openModal(id) {
+  document.getElementById(id).classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+function closeModal(id) {
+  document.getElementById(id).classList.remove('active');
+  document.body.style.overflow = '';
+}
+// Close on Escape / backdrop click
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    document.querySelectorAll('.modal-overlay.active').forEach(m => {
+      closeModal(m.id);
+    });
+  }
+});
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', e => {
+    if (e.target === overlay) closeModal(overlay.id);
+  });
+});
+
+/* ============================================
+   TOAST
+   ============================================ */
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  document.getElementById('toast-text').textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+/* Init */
+document.addEventListener('DOMContentLoaded', () => {
+  lucide.createIcons();
+  setTimeout(animateProgressBars, 300);
+});
+</script>
+</body>
+</html>
