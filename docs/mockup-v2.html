@@ -462,6 +462,142 @@ input, select, textarea { font-family: inherit; }
 .form-textarea { resize: vertical; min-height: 80px; }
 
 /* ============================================
+   HISTORY PAGE
+   ============================================ */
+.history-toolbar {
+  display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 16px;
+}
+.history-toolbar .form-select {
+  padding: 7px 32px 7px 10px; font-size: 0.8rem; background-color: var(--bg-card);
+  border-color: var(--border); min-width: 130px; flex: 1;
+}
+@media (min-width: 768px) {
+  .history-toolbar { flex-wrap: nowrap; }
+  .history-toolbar .form-select { flex: 1 1 0; min-width: 120px; max-width: 200px; }
+}
+.history-toolbar .search-input {
+  flex: 1; min-width: 120px; padding: 7px 10px; font-size: 0.8rem;
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius);
+  color: var(--text-primary); display: none;
+}
+.history-toolbar .search-input.visible { display: block; }
+.history-toolbar .search-input:focus { outline: none; border-color: var(--accent); }
+.add-dropdown-wrap { position: relative; }
+.add-dropdown-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 14px; background: var(--accent); color: white;
+  border-radius: var(--radius); font-weight: 600; font-size: 0.8rem;
+}
+.add-dropdown-btn:hover { background: var(--accent-hover); }
+.add-dropdown-menu {
+  display: none; position: absolute; top: 100%; left: 0; margin-top: 4px;
+  background: var(--bg-elevated); border: 1px solid var(--border);
+  border-radius: var(--radius); min-width: 180px; z-index: 50;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4); overflow: hidden;
+}
+.add-dropdown-menu.open { display: block; }
+.add-dropdown-menu a {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 14px; font-size: 0.85rem; color: var(--text-primary);
+  transition: background 0.15s; cursor: pointer;
+}
+.add-dropdown-menu a:hover { background: var(--bg-card-hover); }
+.add-dropdown-menu a i { width: 16px; height: 16px; color: var(--text-secondary); }
+
+.month-header {
+  font-weight: 700; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.04em;
+  color: var(--text-secondary); margin: 20px 0 10px; padding-bottom: 6px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.month-header:first-child { margin-top: 4px; }
+
+/* Service record cards */
+.history-card {
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg);
+  padding: 14px 16px; margin-bottom: 10px; cursor: pointer;
+  display: flex; align-items: center; gap: 12px;
+  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+}
+.history-card:hover {
+  transform: translateY(-1px); box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+  border-color: color-mix(in srgb, var(--accent) 30%, var(--border));
+}
+.history-card-icon {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: var(--accent-subtle); color: var(--accent);
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.history-card-icon i { width: 18px; height: 18px; }
+.history-card-body { flex: 1; min-width: 0; }
+.history-card-title { font-weight: 600; font-size: 0.88rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.history-card-sub { font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: center; }
+.history-card-services { font-size: 0.72rem; color: var(--text-secondary); margin-top: 3px; }
+.history-card-right { text-align: right; flex-shrink: 0; display: flex; align-items: center; gap: 8px; }
+.history-card-cost { font-family: var(--font-mono); font-weight: 600; font-size: 0.85rem; }
+.history-card-chevron { color: var(--text-muted); }
+.history-card-chevron i { width: 16px; height: 16px; }
+.history-card-link { color: var(--text-muted); }
+.history-card-link i { width: 14px; height: 14px; }
+
+/* Note cards */
+.note-card {
+  background: var(--bg-card); border: 1px solid var(--border); border-left: 3.5px solid var(--accent);
+  border-radius: var(--radius-lg); padding: 12px 14px; margin-bottom: 10px;
+  cursor: pointer; transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+}
+.note-card:hover {
+  transform: translateY(-1px); box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+}
+.note-card-header { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+.note-card-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 0.65rem; font-weight: 600; text-transform: uppercase;
+  color: var(--accent); letter-spacing: 0.03em;
+}
+.note-card-badge i { width: 12px; height: 12px; }
+.note-card-text { font-size: 0.82rem; color: var(--text-primary); line-height: 1.4; margin-bottom: 6px; }
+.note-card-meta { font-size: 0.7rem; color: var(--text-muted); display: flex; gap: 10px; align-items: center; }
+.note-card-linked {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 0.65rem; color: var(--text-secondary); margin-top: 4px;
+}
+.note-card-linked i { width: 12px; height: 12px; }
+.note-resolved {
+  display: inline-flex; align-items: center; gap: 4px; padding: 1px 6px;
+  background: var(--ok-subtle); color: var(--ok); border-radius: var(--radius-pill);
+  font-size: 0.6rem; font-weight: 600; text-transform: uppercase;
+}
+
+/* History detail modal */
+.detail-section { margin-bottom: 20px; }
+.detail-section-title {
+  font-weight: 700; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.04em;
+  color: var(--text-secondary); margin-bottom: 10px;
+  display: flex; align-items: center; gap: 8px;
+}
+.detail-section-title i { width: 16px; height: 16px; }
+.detail-header-date { font-size: 1.1rem; font-weight: 700; }
+.detail-header-info { font-size: 0.82rem; color: var(--text-secondary); margin-top: 4px; }
+.detail-header-info span { margin-right: 12px; }
+.detail-service-line {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  padding: 8px 0; border-bottom: 1px solid var(--border-subtle);
+}
+.detail-service-line:last-child { border-bottom: none; }
+.detail-service-name { font-size: 0.85rem; font-weight: 500; }
+.detail-service-cost { font-family: var(--font-mono); font-size: 0.82rem; color: var(--text-secondary); }
+
+/* History grid desktop */
+.history-grid { }
+
+@media (min-width: 1024px) {
+  .history-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 0 12px;
+  }
+  .history-grid .month-header { grid-column: 1 / -1; }
+}
+
+/* ============================================
    TOAST
    ============================================ */
 .toast {
@@ -691,11 +827,33 @@ input, select, textarea { font-family: inherit; }
       </div>
 
       <!-- ============================
-           HISTORY (placeholder)
+           HISTORY
            ============================ -->
       <div id="screen-history" class="screen">
-        <div class="card"><div class="card-header"><span class="card-title">History</span></div>
-        <p style="color: var(--text-secondary); font-size: 0.85rem;">Phase 2 — Coming next</p></div>
+        <!-- Toolbar -->
+        <div class="history-toolbar">
+          <select class="form-select" id="filter-category" onchange="filterHistory()">
+            <option value="">All Categories</option>
+          </select>
+          <select class="form-select" id="filter-service" onchange="filterHistory()">
+            <option value="">All Services</option>
+          </select>
+          <select class="form-select" id="filter-shop" onchange="filterHistory()">
+            <option value="">All Shops</option>
+          </select>
+          <button class="topbar-btn" onclick="toggleHistorySearch()" title="Search"><i data-lucide="search"></i></button>
+          <input type="text" class="search-input" id="history-search" placeholder="Search records..." oninput="filterHistory()">
+          <div class="add-dropdown-wrap">
+            <button class="add-dropdown-btn" onclick="toggleAddDropdown(event)"><i data-lucide="plus"></i> Add</button>
+            <div class="add-dropdown-menu" id="add-dropdown">
+              <a onclick="closeAddDropdown(); openModal('add-service-modal')"><i data-lucide="wrench"></i> Service Record</a>
+              <a onclick="closeAddDropdown(); openModal('add-note-modal')"><i data-lucide="sticky-note"></i> Note</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Timeline -->
+        <div class="history-grid" id="history-timeline"></div>
       </div>
 
       <!-- ============================
@@ -768,6 +926,53 @@ input, select, textarea { font-family: inherit; }
   </div>
 </div>
 
+<!-- History Detail Modal -->
+<div class="modal-overlay" id="history-detail-modal">
+  <div class="modal modal-full">
+    <div class="modal-header">
+      <span class="modal-title">Service Record</span>
+      <button class="modal-close" onclick="closeModal('history-detail-modal')"><i data-lucide="x"></i></button>
+    </div>
+    <div class="modal-body" id="history-detail-body"></div>
+  </div>
+</div>
+
+<!-- Add Note Modal -->
+<div class="modal-overlay" id="add-note-modal">
+  <div class="modal" style="max-width: 460px;">
+    <div class="modal-header">
+      <span class="modal-title">Add Note</span>
+      <button class="modal-close" onclick="closeModal('add-note-modal')"><i data-lucide="x"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Date</label>
+        <input type="date" class="form-input" value="2026-03-08">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Odometer</label>
+        <input type="number" class="form-input" placeholder="e.g. 191083">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Note</label>
+        <textarea class="form-textarea" placeholder="Describe the observation..."></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Link to Service Record (optional)</label>
+        <select class="form-select">
+          <option value="">None</option>
+          <option>Jan 15 — Oil & Filter Change</option>
+          <option>Dec 28 — Transmission Fluid, Differential Fluid</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeModal('add-note-modal')">Cancel</button>
+      <button class="btn-primary" onclick="closeModal('add-note-modal'); showToast('Note saved!')">Save</button>
+    </div>
+  </div>
+</div>
+
 <script>
 /* ============================================
    DATA
@@ -795,6 +1000,41 @@ const SHOPS = [
   { id: 2, name: 'Take 5 Oil Change', address: '1200 Commerce Blvd, Springfield', phone: '(555) 345-6789', website: 'take5.com', hours: 'Mon-Sat 8am-6pm, Sun 10am-4pm', records: 4 },
   { id: 3, name: 'Discount Tire', address: '890 Parkway Dr, Springfield', phone: '(555) 456-7890', website: 'discounttire.com', hours: 'Mon-Fri 8am-6pm, Sat 8am-5pm', records: 2 },
   { id: 4, name: 'DIY (Self)', address: 'Home Garage', phone: '', website: '', hours: '', records: 5 }
+];
+
+const HISTORY_DATA = [
+  { id: 1, type: 'service', date: '2026-03-01', month: 'March 2026', miles: 191083, shop: 'Bass Auto Care',
+    services: [{name:'Multi-Point Safety Inspection', cat:'General Maintenance', cost:0}],
+    shopFee: 0, tax: 0, total: 0, notes: 'Annual inspection — everything looks good.', linkedNotes: [] },
+  { id: 10, type: 'note', date: '2026-02-20', month: 'February 2026', miles: 190800,
+    text: 'Slight vibration at highway speeds above 65mph. May need wheel balancing or tire check.', resolved: false, linkedService: null },
+  { id: 2, type: 'service', date: '2026-01-15', month: 'January 2026', miles: 188321, shop: 'Take 5 Oil Change',
+    services: [{name:'Oil & Filter Change', cat:'Engine & Lubrication', cost:52},{name:'Cabin Air Filter Replacement', cat:'Filtration Systems', cost:18}],
+    shopFee: 3, tax: 5.84, total: 78.84, notes: 'Mobil 1 Full Synthetic 0W-20.', linkedNotes: [10] },
+  { id: 11, type: 'note', date: '2026-01-10', month: 'January 2026', miles: 188100,
+    text: 'Check engine light came on briefly then cleared. Monitor for recurrence.', resolved: true, linkedService: null },
+  { id: 3, type: 'service', date: '2025-12-28', month: 'December 2025', miles: 186500, shop: 'Bass Auto Care',
+    services: [{name:'Transmission Fluid Service', cat:'Drivetrain', cost:165},{name:'Differential Fluid Service', cat:'Drivetrain', cost:85}],
+    shopFee: 15, tax: 21.20, total: 286.20, notes: 'Toyota WS ATF. Drain and fill, no flush.', linkedNotes: [] },
+  { id: 4, type: 'service', date: '2025-12-10', month: 'December 2025', miles: 185200, shop: 'Discount Tire',
+    services: [{name:'Tire Rotation', cat:'Tires & Wheels', cost:0},{name:'Wheel Balancing', cat:'Tires & Wheels', cost:40}],
+    shopFee: 0, tax: 3.20, total: 43.20, notes: '', linkedNotes: [] },
+  { id: 12, type: 'note', date: '2025-12-05', month: 'December 2025', miles: 185000,
+    text: 'Front brakes starting to squeak occasionally during light braking. Pads may be wearing thin.', resolved: false, linkedService: 6 },
+  { id: 5, type: 'service', date: '2025-11-29', month: 'November 2025', miles: 184100, shop: 'DIY (Self)',
+    services: [{name:'Engine Air Filter Replacement', cat:'Filtration Systems', cost:22}],
+    shopFee: 0, tax: 0, total: 22.00, notes: 'K&N replacement filter. Easy swap.', linkedNotes: [] },
+  { id: 6, type: 'service', date: '2025-11-15', month: 'November 2025', miles: 182998, shop: 'Bass Auto Care',
+    services: [{name:'Brake Pad Replacement', cat:'Brake System', cost:95},{name:'Brake Rotor Resurfacing/Replacement', cat:'Brake System', cost:120},{name:'Brake Fluid Exchange', cat:'Brake System', cost:65},{name:'Serpentine Belt Replacement', cat:'Engine & Mechanical', cost:45}],
+    shopFee: 25, tax: 28.00, total: 378.00, notes: 'Ceramic pads front. Rotors resurfaced, not replaced.', linkedNotes: [12] },
+  { id: 7, type: 'service', date: '2025-10-20', month: 'October 2025', miles: 181500, shop: 'Take 5 Oil Change',
+    services: [{name:'Oil & Filter Change', cat:'Engine & Lubrication', cost:52}],
+    shopFee: 3, tax: 4.40, total: 59.40, notes: '', linkedNotes: [] },
+  { id: 13, type: 'note', date: '2025-10-10', month: 'October 2025', miles: 181200,
+    text: 'Windshield wiper streaking on passenger side. Replace soon.', resolved: true, linkedService: 8 },
+  { id: 8, type: 'service', date: '2025-10-05', month: 'October 2025', miles: 180900, shop: 'DIY (Self)',
+    services: [{name:'Windshield Wiper Replacement', cat:'Visibility & Safety', cost:28},{name:'Spark Plug Replacement', cat:'Ignition System', cost:48}],
+    shopFee: 0, tax: 0, total: 76.00, notes: 'Bosch Platinum plugs. Gap set to 0.044.', linkedNotes: [13] },
 ];
 
 /* ============================================
@@ -882,10 +1122,184 @@ function showToast(msg) {
   setTimeout(() => t.classList.remove('show'), 2500);
 }
 
+/* ============================================
+   HISTORY — RENDER & FILTER
+   ============================================ */
+function populateHistoryFilters() {
+  const catSel = document.getElementById('filter-category');
+  const svcSel = document.getElementById('filter-service');
+  const shopSel = document.getElementById('filter-shop');
+  Object.keys(CATEGORIES).sort().forEach(c => {
+    catSel.innerHTML += `<option value="${c}">${c}</option>`;
+  });
+  const allSvcs = new Set();
+  HISTORY_DATA.filter(h=>h.type==='service').forEach(h=>h.services.forEach(s=>allSvcs.add(s.name)));
+  [...allSvcs].sort().forEach(s => {
+    svcSel.innerHTML += `<option value="${s}">${s}</option>`;
+  });
+  SHOPS.forEach(s => {
+    shopSel.innerHTML += `<option value="${s.name}">${s.name}</option>`;
+  });
+}
+
+function renderHistory() {
+  const container = document.getElementById('history-timeline');
+  const catFilter = document.getElementById('filter-category').value;
+  const svcFilter = document.getElementById('filter-service').value;
+  const shopFilter = document.getElementById('filter-shop').value;
+  const searchVal = document.getElementById('history-search').value.toLowerCase();
+
+  let filtered = HISTORY_DATA.filter(item => {
+    if (item.type === 'service') {
+      if (catFilter && !item.services.some(s => s.cat === catFilter)) return false;
+      if (svcFilter && !item.services.some(s => s.name === svcFilter)) return false;
+      if (shopFilter && item.shop !== shopFilter) return false;
+      if (searchVal) {
+        const haystack = (item.services.map(s=>s.name).join(' ') + ' ' + item.shop + ' ' + item.notes).toLowerCase();
+        if (!haystack.includes(searchVal)) return false;
+      }
+    } else {
+      if (catFilter || svcFilter || shopFilter) return false; // notes don't match service filters
+      if (searchVal && !item.text.toLowerCase().includes(searchVal)) return false;
+    }
+    return true;
+  });
+
+  let html = '';
+  let currentMonth = '';
+  filtered.forEach((item, i) => {
+    if (item.month !== currentMonth) {
+      currentMonth = item.month;
+      html += `<div class="month-header">${currentMonth}</div>`;
+    }
+    if (item.type === 'service') {
+      const svcCount = item.services.length;
+      const title = svcCount === 1 ? item.services[0].name : `${svcCount} Services`;
+      const subServices = svcCount > 1 ? `<div class="history-card-services">${item.services.slice(0,3).map(s=>s.name).join(', ')}${svcCount>3?' ...':''}</div>` : '';
+      const dateStr = new Date(item.date+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
+      const hasLinked = item.linkedNotes.length > 0 ? `<span class="history-card-link"><i data-lucide="link"></i></span>` : '';
+      const costStr = item.total > 0 ? `$${item.total.toFixed(2)}` : 'Free';
+      html += `<div class="history-card" onclick="openHistoryDetail(${item.id})" style="animation-delay:${i*0.04}s">
+        <div class="history-card-icon"><i data-lucide="wrench"></i></div>
+        <div class="history-card-body">
+          <div class="history-card-title">${title}</div>
+          ${subServices}
+          <div class="history-card-sub"><span>${dateStr}</span><span>${item.miles.toLocaleString()} mi</span><span>${item.shop}</span></div>
+        </div>
+        <div class="history-card-right">
+          ${hasLinked}
+          <span class="history-card-cost">${costStr}</span>
+          <span class="history-card-chevron"><i data-lucide="chevron-right"></i></span>
+        </div>
+      </div>`;
+    } else {
+      const dateStr = new Date(item.date+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
+      const resolvedBadge = item.resolved ? `<span class="note-resolved"><i data-lucide="check-circle"></i> Resolved</span>` : '';
+      const linkedBadge = item.linkedService ? `<div class="note-card-linked"><i data-lucide="link"></i> Linked to Service Record</div>` : '';
+      html += `<div class="note-card" style="animation-delay:${i*0.04}s">
+        <div class="note-card-header"><span class="note-card-badge"><i data-lucide="sticky-note"></i> Note</span>${resolvedBadge}</div>
+        <div class="note-card-text">${item.text}</div>
+        <div class="note-card-meta"><span>${dateStr}</span><span>${item.miles.toLocaleString()} mi</span></div>
+        ${linkedBadge}
+      </div>`;
+    }
+  });
+  container.innerHTML = html;
+  lucide.createIcons();
+}
+
+function filterHistory() { renderHistory(); }
+
+function toggleHistorySearch() {
+  const input = document.getElementById('history-search');
+  input.classList.toggle('visible');
+  if (input.classList.contains('visible')) input.focus();
+  else { input.value = ''; filterHistory(); }
+}
+
+/* ============================================
+   HISTORY — ADD DROPDOWN
+   ============================================ */
+function toggleAddDropdown(e) {
+  e.stopPropagation();
+  document.getElementById('add-dropdown').classList.toggle('open');
+}
+function closeAddDropdown() {
+  document.getElementById('add-dropdown').classList.remove('open');
+}
+document.addEventListener('click', () => closeAddDropdown());
+
+/* ============================================
+   HISTORY — DETAIL MODAL
+   ============================================ */
+function openHistoryDetail(id) {
+  const item = HISTORY_DATA.find(h => h.id === id);
+  if (!item || item.type !== 'service') return;
+  const dateStr = new Date(item.date+'T12:00:00').toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  const shop = SHOPS.find(s => s.name === item.shop);
+  const shopAddr = shop ? shop.address : '';
+
+  let servicesHtml = item.services.map(s => `
+    <div class="detail-service-line">
+      <div><span class="detail-service-name">${s.name}</span> <span class="badge badge-cat">${s.cat}</span></div>
+      <span class="detail-service-cost">${s.cost > 0 ? '$'+s.cost.toFixed(2) : 'Incl.'}</span>
+    </div>`).join('');
+
+  const subtotal = item.services.reduce((a,s)=>a+s.cost, 0);
+  let costHtml = `
+    <div class="cost-line"><span class="cost-line-label">Subtotal</span><span class="cost-line-value">$${subtotal.toFixed(2)}</span></div>
+    ${item.shopFee > 0 ? `<div class="cost-line"><span class="cost-line-label" style="color:var(--text-muted)">Shop Fee</span><span class="cost-line-value" style="color:var(--text-muted)">$${item.shopFee.toFixed(2)}</span></div>` : ''}
+    ${item.tax > 0 ? `<div class="cost-line"><span class="cost-line-label" style="color:var(--text-muted)">Tax</span><span class="cost-line-value" style="color:var(--text-muted)">$${item.tax.toFixed(2)}</span></div>` : ''}
+    <div class="cost-divider"></div>
+    <div class="cost-line cost-total"><span class="cost-line-label">Total</span><span class="cost-line-value">$${item.total.toFixed(2)}</span></div>`;
+
+  let linkedNotesHtml = '';
+  if (item.linkedNotes.length > 0) {
+    const notes = item.linkedNotes.map(nid => HISTORY_DATA.find(h=>h.id===nid)).filter(Boolean);
+    linkedNotesHtml = `<div class="detail-section">
+      <div class="detail-section-title"><i data-lucide="link"></i> Linked Notes</div>
+      ${notes.map(n => {
+        const nDate = new Date(n.date+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
+        const res = n.resolved ? '<span class="note-resolved" style="margin-left:8px"><i data-lucide="check-circle"></i> Resolved</span>' : '';
+        return `<div class="note-card" style="cursor:default;"><div class="note-card-header"><span class="note-card-badge"><i data-lucide="sticky-note"></i> Note</span>${res}</div><div class="note-card-text">${n.text}</div><div class="note-card-meta"><span>${nDate}</span><span>${n.miles.toLocaleString()} mi</span></div></div>`;
+      }).join('')}
+    </div>`;
+  }
+
+  const body = document.getElementById('history-detail-body');
+  body.innerHTML = `
+    <div class="detail-section">
+      <div class="detail-header-date">${dateStr}</div>
+      <div class="detail-header-info">
+        <span><i data-lucide="gauge" style="width:14px;height:14px;vertical-align:-2px;margin-right:4px;color:var(--text-muted)"></i>${item.miles.toLocaleString()} mi</span>
+        <span><i data-lucide="store" style="width:14px;height:14px;vertical-align:-2px;margin-right:4px;color:var(--text-muted)"></i>${item.shop}</span>
+      </div>
+      ${shopAddr ? `<div style="font-size:0.75rem;color:var(--text-muted);margin-top:2px;">${shopAddr}</div>` : ''}
+    </div>
+    <div class="detail-section">
+      <div class="detail-section-title"><i data-lucide="wrench"></i> Services Performed</div>
+      ${servicesHtml}
+    </div>
+    <div class="detail-section">
+      <div class="detail-section-title"><i data-lucide="dollar-sign"></i> Cost Summary</div>
+      ${costHtml}
+    </div>
+    ${linkedNotesHtml}
+    ${item.notes ? `<div class="detail-section"><div class="detail-section-title"><i data-lucide="file-text"></i> Record Notes</div><p style="font-size:0.85rem;color:var(--text-secondary);line-height:1.5;">${item.notes}</p></div>` : ''}
+    <div class="detail-section">
+      <div class="detail-section-title"><i data-lucide="paperclip"></i> Attachments</div>
+      <p style="font-size:0.82rem;color:var(--text-muted);font-style:italic;">No attachments</p>
+    </div>`;
+  openModal('history-detail-modal');
+  lucide.createIcons();
+}
+
 /* Init */
 document.addEventListener('DOMContentLoaded', () => {
   lucide.createIcons();
   setTimeout(animateProgressBars, 300);
+  populateHistoryFilters();
+  renderHistory();
 });
 </script>
 </body>
