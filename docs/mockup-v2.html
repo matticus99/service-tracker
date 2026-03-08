@@ -1194,13 +1194,20 @@ function renderHistory() {
       </div>`;
     } else {
       const dateStr = new Date(item.date+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
-      const resolvedBadge = item.resolved ? `<span class="note-resolved"><i data-lucide="check-circle"></i> Resolved</span>` : '';
-      const linkedBadge = item.linkedService ? `<div class="note-card-linked"><i data-lucide="link"></i> Linked to Service Record</div>` : '';
+      let linkedHtml = '';
+      if (item.linkedService) {
+        const svc = HISTORY_DATA.find(h => h.id === item.linkedService);
+        if (svc) {
+          const svcName = svc.services.length === 1 ? svc.services[0].name : svc.services.length === 2 ? svc.services.map(s=>s.name).join(', ') : svc.services.slice(0,2).map(s=>s.name).join(', ') + ' +' + (svc.services.length-2) + ' more';
+          const svcDate = new Date(svc.date+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
+          linkedHtml = `<div class="note-card-linked"><i data-lucide="link"></i> ${svcDate} &mdash; ${svcName}</div>`;
+        }
+      }
       html += `<div class="note-card" style="animation-delay:${i*0.04}s">
-        <div class="note-card-header"><span class="note-card-badge"><i data-lucide="sticky-note"></i> Note</span>${resolvedBadge}</div>
+        <div class="note-card-header"><span class="note-card-badge"><i data-lucide="sticky-note"></i> Note</span></div>
         <div class="note-card-text">${item.text}</div>
         <div class="note-card-meta"><span>${dateStr}</span><span>${item.miles.toLocaleString()} mi</span></div>
-        ${linkedBadge}
+        ${linkedHtml}
       </div>`;
     }
   });
@@ -1260,8 +1267,7 @@ function openHistoryDetail(id) {
       <div class="detail-section-title"><i data-lucide="link"></i> Linked Notes</div>
       ${notes.map(n => {
         const nDate = new Date(n.date+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
-        const res = n.resolved ? '<span class="note-resolved" style="margin-left:8px"><i data-lucide="check-circle"></i> Resolved</span>' : '';
-        return `<div class="note-card" style="cursor:default;"><div class="note-card-header"><span class="note-card-badge"><i data-lucide="sticky-note"></i> Note</span>${res}</div><div class="note-card-text">${n.text}</div><div class="note-card-meta"><span>${nDate}</span><span>${n.miles.toLocaleString()} mi</span></div></div>`;
+        return `<div class="note-card" style="cursor:default;"><div class="note-card-header"><span class="note-card-badge"><i data-lucide="sticky-note"></i> Note</span></div><div class="note-card-text">${n.text}</div><div class="note-card-meta"><span>${nDate}</span><span>${n.miles.toLocaleString()} mi</span></div></div>`;
       }).join('')}
     </div>`;
   }
