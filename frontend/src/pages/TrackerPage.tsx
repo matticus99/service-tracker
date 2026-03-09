@@ -8,6 +8,7 @@ import {
   DollarSign,
   Plus,
   Pencil,
+  MapPin,
 } from 'lucide-react'
 import {
   useIntervalItems,
@@ -25,6 +26,7 @@ import { PageSkeleton } from '@/components/ui/Skeleton'
 import { ErrorState } from '@/components/ui/ErrorState'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { IntervalItemFormModal } from '@/components/forms/IntervalItemFormModal'
+import { FacilityAutocomplete } from '@/components/forms/FacilityAutocomplete'
 import { formatMileage, formatCurrency, formatDate } from '@/lib/format'
 import type { IntervalItem, IntervalStatus } from '@/types/api'
 
@@ -227,7 +229,9 @@ function TrackerItemCard({
                 ? `${formatMileage(item.next_service_miles)} mi`
                 : item.target_miles != null
                   ? `${formatMileage(item.target_miles)} mi`
-                  : 'As Needed'}
+                  : item.target_date != null
+                    ? formatDate(item.target_date)
+                    : 'As Needed'}
             </span>
           </div>
         </div>
@@ -308,6 +312,7 @@ function MarkServicedModal({
 }) {
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]!)
   const [odometer, setOdometer] = useState(String(currentMileage))
+  const [facility, setFacility] = useState('')
   const mutation = useMarkServiced()
   const { toast } = useToast()
 
@@ -315,6 +320,7 @@ function MarkServicedModal({
     if (open) {
       setDate(new Date().toISOString().split('T')[0]!)
       setOdometer(String(currentMileage))
+      setFacility('')
     }
   }, [open, currentMileage])
 
@@ -331,7 +337,11 @@ function MarkServicedModal({
       {
         vehicleId,
         itemId: item.id,
-        data: { service_date: date, odometer: odometerNum },
+        data: {
+          service_date: date,
+          odometer: odometerNum,
+          facility: facility.trim() || null,
+        },
       },
       {
         onSuccess: () => {
@@ -367,6 +377,17 @@ function MarkServicedModal({
             value={odometer}
             onChange={(e) => setOdometer(e.target.value)}
             className="w-full px-3 py-2.5 bg-bg-input border border-border-default rounded-lg text-text-primary font-mono focus:outline-none focus:border-accent transition-colors"
+          />
+        </div>
+        <div>
+          <label className="text-sm text-text-secondary block mb-1">
+            <MapPin className="w-3.5 h-3.5 inline mr-1" />
+            Facility
+          </label>
+          <FacilityAutocomplete
+            value={facility}
+            onChange={setFacility}
+            vehicleId={vehicleId}
           />
         </div>
         {nextDue && (

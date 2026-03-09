@@ -88,7 +88,7 @@ export const api = {
     markServiced: (
       vehicleId: string,
       itemId: string,
-      data: { service_date: string; odometer: number },
+      data: { service_date: string; odometer: number; facility?: string | null },
     ) =>
       request<IntervalItem>(
         `/vehicles/${vehicleId}/interval-items/${itemId}/mark-serviced`,

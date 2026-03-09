@@ -248,7 +248,9 @@ function ServiceCard({
       </div>
       <div className="flex-1 min-w-0">
         <div className="text-sm font-medium truncate">
-          {d.facility ?? (isOil ? 'Oil Change' : 'Service')}
+          {isOil
+            ? 'Oil Change'
+            : (entry.data as ServiceRecord).services_performed?.join(', ') ?? 'Service'}
         </div>
         <div className="flex items-center gap-2 text-xs text-text-secondary">
           <span>{formatDate(d.service_date)}</span>
@@ -256,13 +258,9 @@ function ServiceCard({
             <span className="font-mono">{formatMileage(d.odometer)} mi</span>
           )}
         </div>
-        {!isOil && (entry.data as ServiceRecord).services_performed && (
+        {d.facility && (
           <div className="text-xs text-text-muted truncate mt-0.5">
-            {(entry.data as ServiceRecord)
-              .services_performed!.slice(0, 3)
-              .join(', ')}
-            {(entry.data as ServiceRecord).services_performed!.length > 3 &&
-              ` +${(entry.data as ServiceRecord).services_performed!.length - 3} more`}
+            {d.facility}
           </div>
         )}
       </div>

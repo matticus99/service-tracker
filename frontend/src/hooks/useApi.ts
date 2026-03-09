@@ -251,13 +251,16 @@ export function useMarkServiced() {
     }: {
       vehicleId: string
       itemId: string
-      data: { service_date: string; odometer: number }
+      data: { service_date: string; odometer: number; facility?: string | null }
     }) => api.intervalItems.markServiced(vehicleId, itemId, data),
     onSuccess: (_data, { vehicleId }) => {
       queryClient.invalidateQueries({
         queryKey: ['interval-items', vehicleId],
       })
       queryClient.invalidateQueries({ queryKey: ['dashboard', vehicleId] })
+      queryClient.invalidateQueries({ queryKey: ['service-history', vehicleId] })
+      queryClient.invalidateQueries({ queryKey: ['facilities', vehicleId] })
+      queryClient.invalidateQueries({ queryKey: ['vehicles'] })
     },
   })
 }

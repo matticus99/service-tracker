@@ -47,6 +47,7 @@ export interface IntervalItem {
   notes: string | null
   target_date: string | null
   target_miles: number | null
+  record_type: string | null
   status: 'overdue' | 'due_soon' | 'ok' | 'ad_hoc' | null
   miles_remaining: number | null
   created_at: string
@@ -148,6 +149,7 @@ export interface IntervalItemCreate {
   notes?: string | null
   target_date?: string | null
   target_miles?: number | null
+  record_type?: string | null
 }
 
 export interface VehicleUpdate {

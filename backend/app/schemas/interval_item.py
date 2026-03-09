@@ -18,6 +18,7 @@ class IntervalItemCreate(BaseModel):
     notes: str | None = None
     target_date: date | None = None
     target_miles: int | None = None
+    record_type: str | None = None
 
 
 class IntervalItemUpdate(BaseModel):
@@ -32,11 +33,13 @@ class IntervalItemUpdate(BaseModel):
     notes: str | None = None
     target_date: date | None = None
     target_miles: int | None = None
+    record_type: str | None = None
 
 
 class MarkServicedRequest(BaseModel):
     service_date: date
     odometer: int
+    facility: str | None = None
 
 
 class IntervalItemOut(BaseModel):
@@ -53,6 +56,7 @@ class IntervalItemOut(BaseModel):
     notes: str | None
     target_date: date | None
     target_miles: int | None
+    record_type: str | None
     status: str | None = None
     miles_remaining: int | None = None
     created_at: datetime

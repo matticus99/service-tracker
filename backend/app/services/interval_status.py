@@ -1,4 +1,6 @@
 """Shared interval item status computation logic."""
+from datetime import date, timedelta
+
 from app.models.interval_item import IntervalItem, IntervalItemType
 from app.schemas.interval_item import IntervalItemOut
 
@@ -15,6 +17,15 @@ def compute_status(item: IntervalItem, current_mileage: int) -> tuple[str, int |
                 return "due_soon", remaining
             else:
                 return "ok", remaining
+        if item.target_date is not None:
+            today = date.today()
+            days_remaining = (item.target_date - today).days
+            if days_remaining < 0:
+                return "overdue", None
+            elif days_remaining <= 14:
+                return "due_soon", None
+            else:
+                return "ok", None
         return "ad_hoc", None
 
     if item.next_service_miles is None:
