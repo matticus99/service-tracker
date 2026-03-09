@@ -19,6 +19,8 @@ class IntervalItemCreate(BaseModel):
     target_date: date | None = None
     target_miles: int | None = None
     record_type: str | None = None
+    service_definition_id: uuid.UUID | None = None
+    category_id: uuid.UUID | None = None
 
 
 class IntervalItemUpdate(BaseModel):
@@ -34,6 +36,8 @@ class IntervalItemUpdate(BaseModel):
     target_date: date | None = None
     target_miles: int | None = None
     record_type: str | None = None
+    service_definition_id: uuid.UUID | None = None
+    category_id: uuid.UUID | None = None
 
 
 class MarkServicedRequest(BaseModel):
@@ -57,6 +61,8 @@ class IntervalItemOut(BaseModel):
     target_date: date | None
     target_miles: int | None
     record_type: str | None
+    service_definition_id: uuid.UUID | None = None
+    category_id: uuid.UUID | None = None
     status: str | None = None
     miles_remaining: int | None = None
     created_at: datetime

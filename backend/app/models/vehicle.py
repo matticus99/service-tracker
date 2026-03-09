@@ -25,3 +25,4 @@ class Vehicle(Base):
     interval_items = relationship("IntervalItem", back_populates="vehicle", cascade="all, delete-orphan")
     observations = relationship("Observation", back_populates="vehicle", cascade="all, delete-orphan")
     push_subscriptions = relationship("PushSubscription", back_populates="vehicle", cascade="all, delete-orphan")
+    shops = relationship("Shop", back_populates="vehicle", cascade="all, delete-orphan")

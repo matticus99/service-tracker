@@ -31,7 +31,11 @@ class IntervalItem(Base):
     target_date: Mapped[date | None] = mapped_column(Date)
     target_miles: Mapped[int | None] = mapped_column(Integer)
     record_type: Mapped[str | None] = mapped_column(String(50), default=None)
+    service_definition_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), ForeignKey("service_definitions.id", ondelete="SET NULL"))
+    category_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), ForeignKey("service_categories.id", ondelete="SET NULL"))
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     vehicle = relationship("Vehicle", back_populates="interval_items")
+    service_definition = relationship("ServiceDefinition")
+    category = relationship("ServiceCategory")
