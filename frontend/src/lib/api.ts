@@ -14,6 +14,11 @@ import type {
   SettingsUpdate,
   AttachmentMeta,
   PushSubscriptionInfo,
+  ServiceCategory,
+  Shop,
+  ShopCreate,
+  ShopUpdate,
+  NoteServiceLink,
 } from '@/types/api'
 
 const BASE = '/api/v1'
@@ -52,6 +57,10 @@ export const api = {
       request<Dashboard>(`/vehicles/${vehicleId}/dashboard`),
   },
 
+  categories: {
+    list: () => request<ServiceCategory[]>('/categories'),
+  },
+
   oilChanges: {
     list: (vehicleId: string) =>
       request<OilChange[]>(`/vehicles/${vehicleId}/oil-changes`),
@@ -65,10 +74,52 @@ export const api = {
   serviceRecords: {
     list: (vehicleId: string) =>
       request<ServiceRecord[]>(`/vehicles/${vehicleId}/service-records`),
+    get: (vehicleId: string, recordId: string) =>
+      request<ServiceRecord>(`/vehicles/${vehicleId}/service-records/${recordId}`),
     create: (vehicleId: string, data: ServiceRecordCreate) =>
       request<ServiceRecord>(`/vehicles/${vehicleId}/service-records`, {
         method: 'POST',
         body: JSON.stringify(data),
+      }),
+    update: (vehicleId: string, recordId: string, data: Partial<ServiceRecordCreate>) =>
+      request<ServiceRecord>(`/vehicles/${vehicleId}/service-records/${recordId}`, {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+      }),
+    delete: (vehicleId: string, recordId: string) =>
+      request<void>(`/vehicles/${vehicleId}/service-records/${recordId}`, {
+        method: 'DELETE',
+      }),
+    linkObservation: (vehicleId: string, recordId: string, observationId: string) =>
+      request<NoteServiceLink>(
+        `/vehicles/${vehicleId}/service-records/${recordId}/links?observation_id=${observationId}`,
+        { method: 'POST' },
+      ),
+    unlinkObservation: (vehicleId: string, recordId: string, linkId: string) =>
+      request<void>(
+        `/vehicles/${vehicleId}/service-records/${recordId}/links/${linkId}`,
+        { method: 'DELETE' },
+      ),
+  },
+
+  shops: {
+    list: (vehicleId: string) =>
+      request<Shop[]>(`/vehicles/${vehicleId}/shops`),
+    get: (vehicleId: string, shopId: string) =>
+      request<Shop>(`/vehicles/${vehicleId}/shops/${shopId}`),
+    create: (vehicleId: string, data: ShopCreate) =>
+      request<Shop>(`/vehicles/${vehicleId}/shops`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
+    update: (vehicleId: string, shopId: string, data: ShopUpdate) =>
+      request<Shop>(`/vehicles/${vehicleId}/shops/${shopId}`, {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+      }),
+    delete: (vehicleId: string, shopId: string) =>
+      request<void>(`/vehicles/${vehicleId}/shops/${shopId}`, {
+        method: 'DELETE',
       }),
   },
 
@@ -113,6 +164,16 @@ export const api = {
         method: 'PATCH',
         body: JSON.stringify(data),
       }),
+    linkServiceRecord: (vehicleId: string, obsId: string, serviceRecordId: string) =>
+      request<NoteServiceLink>(
+        `/vehicles/${vehicleId}/observations/${obsId}/links?service_record_id=${serviceRecordId}`,
+        { method: 'POST' },
+      ),
+    unlinkServiceRecord: (vehicleId: string, obsId: string, linkId: string) =>
+      request<void>(
+        `/vehicles/${vehicleId}/observations/${obsId}/links/${linkId}`,
+        { method: 'DELETE' },
+      ),
   },
 
   settings: {

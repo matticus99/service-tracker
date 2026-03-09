@@ -22,6 +22,15 @@ export interface OilChange {
   created_at: string
 }
 
+export interface ServiceRecordItem {
+  id: string
+  service_record_id: string
+  service_definition_id: string | null
+  custom_service_name: string | null
+  cost: number | null
+  display_order: number
+}
+
 export interface ServiceRecord {
   id: string
   vehicle_id: string
@@ -30,6 +39,12 @@ export interface ServiceRecord {
   odometer: number | null
   services_performed: string[] | null
   notes: string | null
+  shop_id: string | null
+  total_cost: number | null
+  shop_fee: number | null
+  tax: number | null
+  items: ServiceRecordItem[]
+  linked_observation_ids: string[]
   created_at: string
 }
 
@@ -48,6 +63,8 @@ export interface IntervalItem {
   target_date: string | null
   target_miles: number | null
   record_type: string | null
+  service_definition_id: string | null
+  category_id: string | null
   status: 'overdue' | 'due_soon' | 'ok' | 'ad_hoc' | null
   miles_remaining: number | null
   created_at: string
@@ -62,6 +79,7 @@ export interface Observation {
   observation: string
   resolved: boolean
   resolved_date: string | null
+  linked_service_record_ids: string[]
   created_at: string
 }
 
@@ -114,6 +132,61 @@ export type ServiceHistoryEntry =
 
 export type IntervalStatus = 'overdue' | 'due_soon' | 'ok' | 'ad_hoc'
 
+// Categories & service definitions
+
+export interface ServiceDefinition {
+  id: string
+  category_id: string
+  name: string
+}
+
+export interface ServiceCategory {
+  id: string
+  name: string
+  display_order: number
+  services: ServiceDefinition[]
+}
+
+// Shops
+
+export interface Shop {
+  id: string
+  vehicle_id: string
+  name: string
+  address: string | null
+  phone: string | null
+  website: string | null
+  hours: string | null
+  google_place_id: string | null
+  created_at: string
+}
+
+export interface ShopCreate {
+  name: string
+  address?: string | null
+  phone?: string | null
+  website?: string | null
+  hours?: string | null
+  google_place_id?: string | null
+}
+
+export interface ShopUpdate {
+  name?: string
+  address?: string | null
+  phone?: string | null
+  website?: string | null
+  hours?: string | null
+  google_place_id?: string | null
+}
+
+// Note-service links
+
+export interface NoteServiceLink {
+  id: string
+  observation_id: string
+  service_record_id: string
+}
+
 // Create input types (match backend Pydantic schemas)
 
 export interface OilChangeCreate {
@@ -123,12 +196,24 @@ export interface OilChangeCreate {
   notes?: string | null
 }
 
+export interface ServiceRecordItemCreate {
+  service_definition_id?: string | null
+  custom_service_name?: string | null
+  cost?: number | null
+  display_order?: number
+}
+
 export interface ServiceRecordCreate {
   service_date: string
   facility?: string | null
   odometer?: number | null
   services_performed?: string[] | null
   notes?: string | null
+  shop_id?: string | null
+  total_cost?: number | null
+  shop_fee?: number | null
+  tax?: number | null
+  items?: ServiceRecordItemCreate[] | null
 }
 
 export interface ObservationCreate {
@@ -150,6 +235,8 @@ export interface IntervalItemCreate {
   target_date?: string | null
   target_miles?: number | null
   record_type?: string | null
+  service_definition_id?: string | null
+  category_id?: string | null
 }
 
 export interface VehicleUpdate {

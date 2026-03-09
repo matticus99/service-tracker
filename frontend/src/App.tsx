@@ -8,6 +8,7 @@ const DashboardPage = lazy(() => import('@/pages/DashboardPage').then((m) => ({ 
 const HistoryPage = lazy(() => import('@/pages/HistoryPage').then((m) => ({ default: m.HistoryPage })))
 const TrackerPage = lazy(() => import('@/pages/TrackerPage').then((m) => ({ default: m.TrackerPage })))
 const NotesPage = lazy(() => import('@/pages/NotesPage').then((m) => ({ default: m.NotesPage })))
+const ShopsPage = lazy(() => import('@/pages/ShopsPage').then((m) => ({ default: m.ShopsPage })))
 const SettingsPage = lazy(() => import('@/pages/SettingsPage').then((m) => ({ default: m.SettingsPage })))
 
 const queryClient = new QueryClient({
@@ -31,6 +32,7 @@ export default function App() {
             <Route path="/history" element={<Suspense fallback={<PageFallback />}><HistoryPage /></Suspense>} />
             <Route path="/tracker" element={<Suspense fallback={<PageFallback />}><TrackerPage /></Suspense>} />
             <Route path="/notes" element={<Suspense fallback={<PageFallback />}><NotesPage /></Suspense>} />
+            <Route path="/shops" element={<Suspense fallback={<PageFallback />}><ShopsPage /></Suspense>} />
             <Route path="/settings" element={<Suspense fallback={<PageFallback />}><SettingsPage /></Suspense>} />
           </Route>
         </Routes>
