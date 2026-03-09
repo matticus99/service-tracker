@@ -2,8 +2,11 @@ import { useState, useEffect } from 'react'
 import { Calendar, Gauge } from 'lucide-react'
 import { Modal } from '@/components/ui/Modal'
 import { FormField, inputClass, textareaClass } from './FormField'
-import { useCreateObservation } from '@/hooks/useApi'
+import { useCreateObservation, useServiceHistory } from '@/hooks/useApi'
+import { api } from '@/lib/api'
 import { useToast } from '@/context/ToastContext'
+import { formatDate } from '@/lib/format'
+import type { ServiceRecord } from '@/types/api'
 
 interface Props {
   open: boolean
@@ -21,14 +24,23 @@ export function AddObservationModal({
   const [date, setDate] = useState('')
   const [odometer, setOdometer] = useState('')
   const [observation, setObservation] = useState('')
+  const [linkedRecordId, setLinkedRecordId] = useState('')
   const mutation = useCreateObservation()
+  const { data: history } = useServiceHistory(vehicleId)
   const { toast } = useToast()
+
+  // Get recent service records for linking
+  const recentRecords = (history ?? [])
+    .filter((e) => e.type === 'service')
+    .slice(0, 10)
+    .map((e) => e.data as ServiceRecord)
 
   useEffect(() => {
     if (open) {
       setDate(new Date().toISOString().split('T')[0]!)
       setOdometer(String(currentMileage))
       setObservation('')
+      setLinkedRecordId('')
     }
   }, [open, currentMileage])
 
@@ -47,13 +59,27 @@ export function AddObservationModal({
         },
       },
       {
-        onSuccess: () => {
+        onSuccess: async (obs) => {
+          // Link to service record if selected
+          if (linkedRecordId) {
+            try {
+              await api.observations.linkServiceRecord(vehicleId, obs.id, linkedRecordId)
+            } catch {
+              // Best-effort linking
+            }
+          }
           toast('Observation added')
           onClose()
         },
         onError: () => toast('Failed to add observation', 'error'),
       },
     )
+  }
+
+  function getRecordLabel(record: ServiceRecord): string {
+    const dateStr = formatDate(record.service_date)
+    const services = record.services_performed?.slice(0, 2).join(', ') ?? 'Service'
+    return `${dateStr} — ${services}`
   }
 
   return (
@@ -85,6 +111,22 @@ export function AddObservationModal({
             className={textareaClass}
           />
         </FormField>
+        {recentRecords.length > 0 && (
+          <FormField label="Link to Service Record">
+            <select
+              value={linkedRecordId}
+              onChange={(e) => setLinkedRecordId(e.target.value)}
+              className={inputClass}
+            >
+              <option value="">None</option>
+              {recentRecords.map((r) => (
+                <option key={r.id} value={r.id}>
+                  {getRecordLabel(r)}
+                </option>
+              ))}
+            </select>
+          </FormField>
+        )}
       </div>
       <div className="flex gap-2 mt-6">
         <button

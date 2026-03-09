@@ -16,7 +16,6 @@ import { PageSkeleton } from '@/components/ui/Skeleton'
 import { ErrorState } from '@/components/ui/ErrorState'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { AttachmentSection } from '@/components/attachments/AttachmentSection'
-import { AddOilChangeModal } from '@/components/forms/AddOilChangeModal'
 import { AddServiceRecordModal } from '@/components/forms/AddServiceRecordModal'
 import {
   formatDate,
@@ -27,7 +26,6 @@ import { groupByMonth } from '@/lib/history'
 import type { ServiceHistoryEntry, OilChange, ServiceRecord } from '@/types/api'
 
 type TypeFilter = 'all' | 'oil_change' | 'service'
-type AddType = 'oil_change' | 'service' | null
 
 export function HistoryPage() {
   const { vehicleId, vehicle } = useVehicle()
@@ -36,7 +34,7 @@ export function HistoryPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [searchOpen, setSearchOpen] = useState(false)
   const [selectedEntry, setSelectedEntry] = useState<ServiceHistoryEntry | null>(null)
-  const [addOpen, setAddOpen] = useState<AddType>(null)
+  const [addOpen, setAddOpen] = useState(false)
 
   const facilities = useMemo(() => {
     if (!entries) return []
@@ -137,27 +135,12 @@ export function HistoryPage() {
               <Search className="w-5 h-5" />
             </button>
           )}
-          <div className="relative group">
-            <button className="p-2 text-accent hover:bg-accent-subtle rounded-lg transition-colors">
-              <Plus className="w-5 h-5" />
-            </button>
-            <div className="absolute right-0 top-full mt-1 bg-bg-elevated border border-border-default rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-20 min-w-[160px]">
-              <button
-                onClick={() => setAddOpen('oil_change')}
-                className="w-full text-left px-3 py-2.5 text-sm text-text-primary hover:bg-bg-card transition-colors rounded-t-lg flex items-center gap-2"
-              >
-                <Droplets className="w-4 h-4 text-accent" />
-                Oil Change
-              </button>
-              <button
-                onClick={() => setAddOpen('service')}
-                className="w-full text-left px-3 py-2.5 text-sm text-text-primary hover:bg-bg-card transition-colors rounded-b-lg flex items-center gap-2"
-              >
-                <Wrench className="w-4 h-4 text-purple-400" />
-                Service Record
-              </button>
-            </div>
-          </div>
+          <button
+            onClick={() => setAddOpen(true)}
+            className="p-2 text-accent hover:bg-accent-subtle rounded-lg transition-colors"
+          >
+            <Plus className="w-5 h-5" />
+          </button>
         </div>
       </div>
 
@@ -202,20 +185,12 @@ export function HistoryPage() {
       )}
 
       {vehicleId && (
-        <>
-          <AddOilChangeModal
-            open={addOpen === 'oil_change'}
-            onClose={() => setAddOpen(null)}
-            vehicleId={vehicleId}
-            currentMileage={currentMileage}
-          />
-          <AddServiceRecordModal
-            open={addOpen === 'service'}
-            onClose={() => setAddOpen(null)}
-            vehicleId={vehicleId}
-            currentMileage={currentMileage}
-          />
-        </>
+        <AddServiceRecordModal
+          open={addOpen}
+          onClose={() => setAddOpen(false)}
+          vehicleId={vehicleId}
+          currentMileage={currentMileage}
+        />
       )}
     </div>
   )

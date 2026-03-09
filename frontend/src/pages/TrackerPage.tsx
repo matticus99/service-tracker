@@ -26,7 +26,7 @@ import { PageSkeleton } from '@/components/ui/Skeleton'
 import { ErrorState } from '@/components/ui/ErrorState'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { IntervalItemFormModal } from '@/components/forms/IntervalItemFormModal'
-import { FacilityAutocomplete } from '@/components/forms/FacilityAutocomplete'
+import { ShopAutocomplete } from '@/components/forms/ShopAutocomplete'
 import { formatMileage, formatCurrency, formatDate } from '@/lib/format'
 import type { IntervalItem, IntervalStatus } from '@/types/api'
 
@@ -312,7 +312,7 @@ function MarkServicedModal({
 }) {
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]!)
   const [odometer, setOdometer] = useState(String(currentMileage))
-  const [facility, setFacility] = useState('')
+  const [shopName, setShopName] = useState('')
   const mutation = useMarkServiced()
   const { toast } = useToast()
 
@@ -320,7 +320,7 @@ function MarkServicedModal({
     if (open) {
       setDate(new Date().toISOString().split('T')[0]!)
       setOdometer(String(currentMileage))
-      setFacility('')
+      setShopName('')
     }
   }, [open, currentMileage])
 
@@ -340,7 +340,7 @@ function MarkServicedModal({
         data: {
           service_date: date,
           odometer: odometerNum,
-          facility: facility.trim() || null,
+          facility: shopName.trim() || null,
         },
       },
       {
@@ -382,11 +382,11 @@ function MarkServicedModal({
         <div>
           <label className="text-sm text-text-secondary block mb-1">
             <MapPin className="w-3.5 h-3.5 inline mr-1" />
-            Facility
+            Shop
           </label>
-          <FacilityAutocomplete
-            value={facility}
-            onChange={setFacility}
+          <ShopAutocomplete
+            value={null}
+            onChange={(_id, name) => setShopName(name)}
             vehicleId={vehicleId}
           />
         </div>
