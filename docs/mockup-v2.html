@@ -616,6 +616,67 @@ input, select, textarea { font-family: inherit; }
 }
 
 /* ============================================
+   TRACKER PAGE
+   ============================================ */
+.tracker-toolbar {
+  display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;
+}
+.group-toggle {
+  display: inline-flex; background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: var(--radius); overflow: hidden;
+}
+.group-toggle-btn {
+  padding: 7px 16px; font-size: 0.78rem; font-weight: 600;
+  color: var(--text-secondary); transition: all 0.2s; border: none; background: none;
+}
+.group-toggle-btn.active {
+  background: var(--accent); color: white;
+}
+.group-toggle-btn:hover:not(.active) { background: var(--bg-card-hover); color: var(--text-primary); }
+.tracker-summary {
+  font-size: 0.75rem; color: var(--text-muted); font-weight: 500;
+}
+.tracker-card {
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg);
+  padding: 14px 16px; margin-bottom: 10px;
+  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+}
+.tracker-card:hover {
+  transform: translateY(-1px); box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+  border-color: color-mix(in srgb, var(--accent) 30%, var(--border));
+}
+.tracker-card-top {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 6px;
+}
+.tracker-card-name { font-weight: 600; font-size: 0.88rem; flex: 1; min-width: 0; }
+.tracker-card-badges { display: flex; gap: 6px; flex-shrink: 0; }
+.tracker-card-info {
+  display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 6px;
+}
+.tracker-card-info span { display: flex; align-items: center; gap: 4px; }
+.tracker-card-info i { width: 13px; height: 13px; }
+.tracker-card-progress { margin-top: 4px; }
+.tracker-card-progress-label {
+  display: flex; justify-content: space-between; font-size: 0.7rem; margin-bottom: 2px;
+}
+.tracker-card-progress-label .label-left { color: var(--text-muted); }
+.tracker-card-progress-label .label-right { font-family: var(--font-mono); font-weight: 500; }
+.tracker-card-progress-label .label-right.overdue { color: var(--overdue); }
+.tracker-card-progress-label .label-right.due-soon { color: var(--due-soon); }
+.tracker-card-progress-label .label-right.ok { color: var(--ok); }
+.badge-type {
+  background: var(--bg-elevated); color: var(--text-muted);
+  border: 1px solid var(--border);
+}
+@media (min-width: 1024px) {
+  .tracker-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 0 12px;
+  }
+  .tracker-grid .section-header { grid-column: 1 / -1; }
+  .tracker-grid .section-content { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1fr; gap: 0 12px; }
+}
+
+/* ============================================
    TOAST
    ============================================ */
 .toast {
@@ -878,8 +939,14 @@ input, select, textarea { font-family: inherit; }
            TRACKER (placeholder)
            ============================ -->
       <div id="screen-tracker" class="screen">
-        <div class="card"><div class="card-header"><span class="card-title">Tracker</span></div>
-        <p style="color: var(--text-secondary); font-size: 0.85rem;">Phase 3 — Coming soon</p></div>
+        <div class="tracker-toolbar">
+          <div class="group-toggle">
+            <button class="group-toggle-btn active" id="toggle-status" onclick="setTrackerGroup('status')">By Status</button>
+            <button class="group-toggle-btn" id="toggle-category" onclick="setTrackerGroup('category')">By Category</button>
+          </div>
+          <span class="tracker-summary">10 tracked items</span>
+        </div>
+        <div class="tracker-grid" id="tracker-container"></div>
       </div>
 
       <!-- ============================
@@ -1053,6 +1120,29 @@ const HISTORY_DATA = [
   { id: 8, type: 'service', date: '2025-10-05', month: 'October 2025', miles: 180900, shop: 'DIY (Self)',
     services: [{name:'Windshield Wiper Replacement', cat:'Visibility & Safety', cost:28},{name:'Spark Plug Replacement', cat:'Ignition System', cost:48}],
     shopFee: 0, tax: 0, total: 76.00, notes: 'Bosch Platinum plugs. Gap set to 0.044.', linkedNotes: [13] },
+];
+
+const TRACKER_DATA = [
+  { name:'Transmission Fluid Service', cat:'Drivetrain', type:'interval', status:'overdue', cost:195,
+    lastDate:'2025-12-28', lastMiles:186500, nextMiles:190500, currentMiles:191083, intervalMiles:30000 },
+  { name:'Oil & Filter Change', cat:'Engine & Lubrication', type:'interval', status:'due-soon', cost:65,
+    lastDate:'2026-01-15', lastMiles:188321, nextMiles:193321, currentMiles:191083, intervalMiles:5000 },
+  { name:'Brake Pad Replacement', cat:'Brake System', type:'interval', status:'due-soon', cost:124,
+    lastDate:'2025-11-15', lastMiles:182998, nextMiles:192998, currentMiles:191083, intervalMiles:30000 },
+  { name:'Tire Rotation', cat:'Tires & Wheels', type:'interval', status:'due-soon', cost:0,
+    lastDate:'2025-12-10', lastMiles:185200, nextMiles:192700, currentMiles:191083, intervalMiles:7500 },
+  { name:'Cabin Air Filter Replacement', cat:'Filtration Systems', type:'interval', status:'ok', cost:18,
+    lastDate:'2026-01-15', lastMiles:188321, nextMiles:203321, currentMiles:191083, intervalMiles:15000 },
+  { name:'Engine Air Filter Replacement', cat:'Filtration Systems', type:'interval', status:'ok', cost:22,
+    lastDate:'2025-11-29', lastMiles:184100, nextMiles:214100, currentMiles:191083, intervalMiles:30000 },
+  { name:'Spark Plug Replacement', cat:'Ignition System', type:'interval', status:'ok', cost:48,
+    lastDate:'2025-10-05', lastMiles:180900, nextMiles:240900, currentMiles:191083, intervalMiles:60000 },
+  { name:'Coolant Flush & Exchange', cat:'Cooling System', type:'interval', status:'ok', cost:110,
+    lastDate:'2024-06-10', lastMiles:165000, nextMiles:225000, currentMiles:191083, intervalMiles:60000 },
+  { name:'Multi-Point Safety Inspection', cat:'General Maintenance', type:'ad-hoc', status:'adhoc', cost:0,
+    lastDate:'2026-03-01', lastMiles:191083, nextMiles:null, currentMiles:191083, intervalMiles:null },
+  { name:'Serpentine Belt Replacement', cat:'Engine & Mechanical', type:'ad-hoc', status:'adhoc', cost:45,
+    lastDate:'2025-11-15', lastMiles:182998, nextMiles:null, currentMiles:191083, intervalMiles:null },
 ];
 
 /* ============================================
@@ -1334,12 +1424,116 @@ function openHistoryDetail(id) {
   lucide.createIcons();
 }
 
+/* ============================================
+   TRACKER — RENDER & GROUP TOGGLE
+   ============================================ */
+let trackerGroup = 'status';
+
+function setTrackerGroup(group) {
+  trackerGroup = group;
+  document.getElementById('toggle-status').classList.toggle('active', group === 'status');
+  document.getElementById('toggle-category').classList.toggle('active', group === 'category');
+  renderTracker();
+}
+
+function renderTrackerCard(item) {
+  const statusClass = item.status === 'adhoc' ? 'adhoc' : item.status;
+  const statusBadge = item.status === 'overdue' ? 'badge-overdue' : item.status === 'due-soon' ? 'badge-due-soon' : item.status === 'adhoc' ? 'badge-adhoc' : 'badge-ok';
+  const statusLabel = item.status === 'overdue' ? 'Overdue' : item.status === 'due-soon' ? 'Due Soon' : item.status === 'adhoc' ? 'Ad-Hoc' : 'OK';
+  const typeBadge = item.type === 'interval' ? 'Interval' : 'Ad-Hoc';
+  const lastDate = new Date(item.lastDate+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+  const costStr = item.cost > 0 ? `$${item.cost.toFixed(2)}` : 'Free';
+
+  let progressHtml = '';
+  if (item.type === 'interval' && item.nextMiles) {
+    const totalInterval = item.nextMiles - item.lastMiles;
+    const used = item.currentMiles - item.lastMiles;
+    const pct = Math.min(Math.max((used / totalInterval) * 100, 0), 100);
+    const remaining = item.nextMiles - item.currentMiles;
+    const remainLabel = remaining < 0 ? `${Math.abs(remaining).toLocaleString()} mi over` : `${remaining.toLocaleString()} mi left`;
+    progressHtml = `
+      <div class="tracker-card-progress">
+        <div class="tracker-card-progress-label">
+          <span class="label-left">Next: ${item.nextMiles.toLocaleString()} mi</span>
+          <span class="label-right ${statusClass}">${remainLabel}</span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill ${statusClass}" data-width="${pct.toFixed(0)}%" style="width:0%"></div>${item.status === 'overdue' ? '<div class="progress-marker"></div>' : ''}</div>
+      </div>`;
+  }
+
+  return `<div class="tracker-card card-animate">
+    <div class="tracker-card-top">
+      <span class="tracker-card-name">${item.name}</span>
+      <div class="tracker-card-badges">
+        <span class="badge ${statusBadge}">${statusLabel}</span>
+      </div>
+    </div>
+    <div class="tracker-card-info">
+      <span><i data-lucide="tag"></i>${item.cat}</span>
+      <span><i data-lucide="calendar"></i>Last: ${lastDate}</span>
+      <span><i data-lucide="gauge"></i>${item.lastMiles.toLocaleString()} mi</span>
+      <span><i data-lucide="dollar-sign"></i>${costStr}</span>
+    </div>
+    ${progressHtml}
+  </div>`;
+}
+
+function renderTracker() {
+  const container = document.getElementById('tracker-container');
+  let html = '';
+
+  if (trackerGroup === 'status') {
+    const groups = [
+      { key:'overdue', label:'Overdue', dotClass:'overdue' },
+      { key:'due-soon', label:'Due Soon', dotClass:'due-soon' },
+      { key:'ok', label:'OK', dotClass:'ok' },
+      { key:'adhoc', label:'Ad-Hoc', dotClass:'adhoc' },
+    ];
+    groups.forEach(g => {
+      const items = TRACKER_DATA.filter(t => t.status === g.key);
+      if (items.length === 0) return;
+      html += `<div class="section-header collapsible" onclick="toggleSection(this)">
+        <span class="section-dot ${g.dotClass}"></span>
+        <span class="section-label">${g.label}</span>
+        <span class="section-count">(${items.length})</span>
+        <span class="section-chevron"><i data-lucide="chevron-down"></i></span>
+      </div>
+      <div class="section-content">
+        ${items.map(renderTrackerCard).join('')}
+      </div>`;
+    });
+  } else {
+    const catMap = {};
+    TRACKER_DATA.forEach(t => {
+      if (!catMap[t.cat]) catMap[t.cat] = [];
+      catMap[t.cat].push(t);
+    });
+    Object.keys(catMap).sort().forEach(cat => {
+      const items = catMap[cat];
+      html += `<div class="section-header collapsible" onclick="toggleSection(this)">
+        <span class="section-dot" style="background:var(--accent)"></span>
+        <span class="section-label">${cat}</span>
+        <span class="section-count">(${items.length})</span>
+        <span class="section-chevron"><i data-lucide="chevron-down"></i></span>
+      </div>
+      <div class="section-content">
+        ${items.map(renderTrackerCard).join('')}
+      </div>`;
+    });
+  }
+
+  container.innerHTML = html;
+  lucide.createIcons();
+  setTimeout(animateProgressBars, 100);
+}
+
 /* Init */
 document.addEventListener('DOMContentLoaded', () => {
   lucide.createIcons();
   setTimeout(animateProgressBars, 300);
   populateHistoryFilters();
   renderHistory();
+  renderTracker();
 });
 </script>
 </body>
