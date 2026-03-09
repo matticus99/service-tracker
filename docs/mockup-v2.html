@@ -677,6 +677,140 @@ input, select, textarea { font-family: inherit; }
 }
 
 /* ============================================
+   SHOPS PAGE
+   ============================================ */
+.shops-toolbar {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 16px;
+}
+.shops-search {
+  flex: 1; padding: 9px 12px 9px 36px; background: var(--bg-card);
+  border: 1px solid var(--border); border-radius: var(--radius);
+  color: var(--text-primary); font-size: 0.85rem; transition: border-color 0.2s;
+}
+.shops-search:focus { outline: none; border-color: var(--accent); }
+.shops-search-wrap {
+  flex: 1; position: relative;
+}
+.shops-search-wrap i {
+  position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+  width: 16px; height: 16px; color: var(--text-muted); pointer-events: none;
+}
+.shops-grid {
+  display: grid; gap: 12px;
+}
+@media (min-width: 768px) {
+  .shops-grid { grid-template-columns: 1fr 1fr; }
+}
+.shop-card {
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg);
+  padding: 16px; transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+}
+.shop-card:hover {
+  transform: translateY(-1px); box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+  border-color: color-mix(in srgb, var(--accent) 30%, var(--border));
+}
+.shop-card-header {
+  display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;
+}
+.shop-card-name { font-weight: 700; font-size: 0.95rem; }
+.shop-card-count {
+  font-size: 0.7rem; color: var(--text-muted); font-weight: 500;
+  background: var(--bg-elevated); padding: 2px 8px; border-radius: var(--radius-pill);
+  border: 1px solid var(--border);
+}
+.shop-card-detail {
+  display: flex; align-items: flex-start; gap: 8px; font-size: 0.8rem;
+  color: var(--text-secondary); margin-bottom: 6px;
+}
+.shop-card-detail:last-child { margin-bottom: 0; }
+.shop-card-detail i { width: 14px; height: 14px; color: var(--text-muted); flex-shrink: 0; margin-top: 2px; }
+.shop-card-detail a { color: var(--accent); }
+
+/* Places search results */
+.places-results {
+  position: absolute; top: 100%; left: 0; right: 0; z-index: 10;
+  background: var(--bg-elevated); border: 1px solid var(--border);
+  border-radius: var(--radius); margin-top: 4px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4); overflow: hidden; display: none;
+}
+.places-results.open { display: block; }
+.places-result {
+  padding: 10px 14px; cursor: pointer; transition: background 0.15s;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.places-result:last-child { border-bottom: none; }
+.places-result:hover { background: var(--bg-card-hover); }
+.places-result-name { font-weight: 600; font-size: 0.85rem; margin-bottom: 2px; }
+.places-result-addr { font-size: 0.75rem; color: var(--text-muted); }
+.places-manual {
+  padding: 10px 14px; text-align: center;
+  font-size: 0.78rem; color: var(--accent); cursor: pointer;
+  border-top: 1px solid var(--border);
+}
+.places-manual:hover { background: var(--bg-card-hover); }
+
+/* ============================================
+   ADD SERVICE RECORD MODAL
+   ============================================ */
+.service-row {
+  display: flex; gap: 8px; align-items: flex-end; margin-bottom: 10px;
+  padding: 12px; background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: var(--radius); position: relative;
+}
+.service-row .form-group { margin-bottom: 0; flex: 1; min-width: 0; }
+.service-row-cost { max-width: 100px; }
+.service-row-remove {
+  width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;
+  border-radius: 50%; color: var(--text-muted); transition: all 0.2s;
+  flex-shrink: 0; margin-bottom: 2px;
+}
+.service-row-remove:hover { background: var(--overdue-subtle); color: var(--overdue); }
+.service-row-remove i { width: 14px; height: 14px; }
+.btn-add-row {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 14px; font-size: 0.8rem; font-weight: 600;
+  color: var(--accent); background: var(--accent-subtle);
+  border-radius: var(--radius); transition: background 0.2s; margin-top: 4px;
+}
+.btn-add-row:hover { background: rgba(91, 141, 239, 0.22); }
+.btn-add-row i { width: 14px; height: 14px; }
+.cost-auto-summary {
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 14px; margin-top: 16px;
+}
+.cost-auto-summary .cost-line { padding: 6px 0; font-size: 0.85rem; }
+.shop-autocomplete-wrap { position: relative; }
+.shop-autocomplete-results {
+  position: absolute; top: 100%; left: 0; right: 0; z-index: 10;
+  background: var(--bg-elevated); border: 1px solid var(--border);
+  border-radius: var(--radius); margin-top: 4px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4); display: none; overflow: hidden;
+}
+.shop-autocomplete-results.open { display: block; }
+.shop-autocomplete-results .places-result { padding: 8px 12px; }
+.linked-notes-chips {
+  display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px;
+}
+.linked-note-chip {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 4px 10px; background: var(--accent-subtle); color: var(--accent);
+  border: 1px solid rgba(91, 141, 239, 0.3); border-radius: var(--radius-pill);
+  font-size: 0.72rem; font-weight: 500;
+}
+.linked-note-chip button {
+  display: flex; align-items: center; justify-content: center;
+  width: 14px; height: 14px; border-radius: 50%;
+  color: var(--accent); transition: all 0.15s;
+}
+.linked-note-chip button:hover { color: var(--overdue); }
+.linked-note-chip button i { width: 10px; height: 10px; }
+@media (max-width: 640px) {
+  .service-row { flex-wrap: wrap; }
+  .service-row .form-group { flex-basis: calc(50% - 4px); }
+  .service-row-cost { max-width: none; }
+}
+
+/* ============================================
    TOAST
    ============================================ */
 .toast {
@@ -950,11 +1084,19 @@ input, select, textarea { font-family: inherit; }
       </div>
 
       <!-- ============================
-           SHOPS (placeholder)
+           SHOPS
            ============================ -->
       <div id="screen-shops" class="screen">
-        <div class="card"><div class="card-header"><span class="card-title">Shops</span></div>
-        <p style="color: var(--text-secondary); font-size: 0.85rem;">Phase 4 — Coming soon</p></div>
+        <div class="shops-toolbar">
+          <div class="shops-search-wrap">
+            <i data-lucide="search"></i>
+            <input type="text" class="shops-search" id="shops-search" placeholder="Search shops..." oninput="filterShops()">
+          </div>
+          <button class="btn-primary" onclick="openAddShopModal()" style="white-space:nowrap;">
+            <i data-lucide="plus"></i> Add Shop
+          </button>
+        </div>
+        <div class="shops-grid" id="shops-grid"></div>
       </div>
 
       <!-- ============================
@@ -993,16 +1135,65 @@ input, select, textarea { font-family: inherit; }
 </div>
 
 <!-- ============================
-     ADD SERVICE RECORD MODAL (placeholder shell)
+     ADD SERVICE RECORD MODAL
      ============================ -->
 <div class="modal-overlay" id="add-service-modal">
-  <div class="modal">
+  <div class="modal" style="max-width:560px;">
     <div class="modal-header">
       <span class="modal-title">Add Service Record</span>
       <button class="modal-close" onclick="closeModal('add-service-modal')"><i data-lucide="x"></i></button>
     </div>
     <div class="modal-body">
-      <p style="color: var(--text-secondary); font-size: 0.85rem;">Phase 4 — Form coming soon</p>
+      <div style="display:flex; gap:10px;">
+        <div class="form-group" style="flex:1;">
+          <label class="form-label">Date</label>
+          <input type="date" class="form-input" id="asr-date" value="2026-03-08">
+        </div>
+        <div class="form-group" style="flex:1;">
+          <label class="form-label">Odometer</label>
+          <input type="number" class="form-input" id="asr-odometer" placeholder="e.g. 191083">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Shop</label>
+        <div class="shop-autocomplete-wrap">
+          <input type="text" class="form-input" id="asr-shop" placeholder="Type to search shops..." oninput="shopAutocomplete(this.value)" onfocus="shopAutocomplete(this.value)" autocomplete="off">
+          <div class="shop-autocomplete-results" id="asr-shop-results"></div>
+        </div>
+      </div>
+
+      <div class="form-group" style="margin-bottom:8px;">
+        <label class="form-label">Services Performed</label>
+      </div>
+      <div id="asr-services-container"></div>
+      <button class="btn-add-row" onclick="addServiceRow()"><i data-lucide="plus"></i> Add Another Service</button>
+
+      <div class="cost-auto-summary" id="asr-cost-summary">
+        <div class="cost-line"><span class="cost-line-label">Services Subtotal</span><span class="cost-line-value" id="asr-subtotal">$0.00</span></div>
+        <div class="cost-line">
+          <span class="cost-line-label" style="color:var(--text-muted)">Shop Fee</span>
+          <input type="number" class="form-input" id="asr-shop-fee" placeholder="0.00" style="width:90px;padding:5px 8px;font-size:0.82rem;text-align:right;" oninput="recalcCost()">
+        </div>
+        <div class="cost-line">
+          <span class="cost-line-label" style="color:var(--text-muted)">Tax</span>
+          <input type="number" class="form-input" id="asr-tax" placeholder="0.00" style="width:90px;padding:5px 8px;font-size:0.82rem;text-align:right;" oninput="recalcCost()">
+        </div>
+        <div class="cost-divider"></div>
+        <div class="cost-line cost-total"><span class="cost-line-label">Total</span><span class="cost-line-value" id="asr-total">$0.00</span></div>
+      </div>
+
+      <div class="form-group" style="margin-top:16px;">
+        <label class="form-label">Notes</label>
+        <textarea class="form-textarea" id="asr-notes" placeholder="Any additional notes about this service..."></textarea>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Link Existing Notes (optional)</label>
+        <select class="form-select" id="asr-link-notes" onchange="addLinkedNoteChip()">
+          <option value="">Select a note to link...</option>
+        </select>
+        <div class="linked-notes-chips" id="asr-linked-chips"></div>
+      </div>
     </div>
     <div class="modal-footer">
       <button class="btn-secondary" onclick="closeModal('add-service-modal')">Cancel</button>
@@ -1044,16 +1235,64 @@ input, select, textarea { font-family: inherit; }
       </div>
       <div class="form-group">
         <label class="form-label">Link to Service Record (optional)</label>
-        <select class="form-select">
+        <select class="form-select" id="note-link-service">
           <option value="">None</option>
-          <option>Jan 15 — Oil & Filter Change</option>
-          <option>Dec 28 — Transmission Fluid, Differential Fluid</option>
         </select>
       </div>
     </div>
     <div class="modal-footer">
       <button class="btn-secondary" onclick="closeModal('add-note-modal')">Cancel</button>
       <button class="btn-primary" onclick="closeModal('add-note-modal'); showToast('Note saved!')">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Shop Modal -->
+<div class="modal-overlay" id="add-shop-modal">
+  <div class="modal" style="max-width: 500px;">
+    <div class="modal-header">
+      <span class="modal-title">Add Shop</span>
+      <button class="modal-close" onclick="closeModal('add-shop-modal')"><i data-lucide="x"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Search Google Places</label>
+        <div style="position:relative;">
+          <input type="text" class="form-input" id="places-search-input" placeholder="Search for a business..." oninput="fakePlacesSearch(this.value)" autocomplete="off">
+          <div class="places-results" id="places-results"></div>
+        </div>
+        <div style="text-align:center; margin-top:8px;">
+          <span class="places-manual" style="display:inline; padding:4px 0; border-top:none; font-size:0.78rem; color:var(--accent); cursor:pointer;" onclick="showManualShopForm()">Or enter manually</span>
+        </div>
+      </div>
+      <div id="shop-form-fields" style="display:none;">
+        <div class="form-group">
+          <label class="form-label">Shop Name</label>
+          <input type="text" class="form-input" id="shop-name">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Address</label>
+          <input type="text" class="form-input" id="shop-address">
+        </div>
+        <div style="display:flex; gap:10px;">
+          <div class="form-group" style="flex:1;">
+            <label class="form-label">Phone</label>
+            <input type="tel" class="form-input" id="shop-phone" placeholder="(555) 123-4567">
+          </div>
+          <div class="form-group" style="flex:1;">
+            <label class="form-label">Website</label>
+            <input type="text" class="form-input" id="shop-website" placeholder="example.com">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Hours</label>
+          <input type="text" class="form-input" id="shop-hours" placeholder="Mon-Fri 8am-6pm">
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeModal('add-shop-modal')">Cancel</button>
+      <button class="btn-primary" onclick="closeModal('add-shop-modal'); showToast('Shop saved!')">Save</button>
     </div>
   </div>
 </div>
@@ -1527,6 +1766,255 @@ function renderTracker() {
   setTimeout(animateProgressBars, 100);
 }
 
+/* ============================================
+   SHOPS — RENDER & FILTER
+   ============================================ */
+function renderShops() {
+  const container = document.getElementById('shops-grid');
+  const query = (document.getElementById('shops-search').value || '').toLowerCase();
+  const filtered = SHOPS.filter(s => {
+    if (!query) return true;
+    return (s.name + ' ' + s.address).toLowerCase().includes(query);
+  });
+  let html = '';
+  filtered.forEach(s => {
+    const phone = s.phone ? `<div class="shop-card-detail"><i data-lucide="phone"></i>${s.phone}</div>` : '';
+    const website = s.website ? `<div class="shop-card-detail"><i data-lucide="globe"></i><a href="#">${s.website}</a></div>` : '';
+    const hours = s.hours ? `<div class="shop-card-detail"><i data-lucide="clock"></i>${s.hours}</div>` : '';
+    html += `<div class="shop-card card-animate">
+      <div class="shop-card-header">
+        <span class="shop-card-name">${s.name}</span>
+        <span class="shop-card-count">${s.records} records</span>
+      </div>
+      <div class="shop-card-detail"><i data-lucide="map-pin"></i>${s.address}</div>
+      ${phone}${website}${hours}
+    </div>`;
+  });
+  if (filtered.length === 0) {
+    html = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-muted);font-size:0.85rem;">No shops found.</div>';
+  }
+  container.innerHTML = html;
+  lucide.createIcons();
+}
+function filterShops() { renderShops(); }
+
+/* ============================================
+   ADD SHOP — FAKE PLACES SEARCH
+   ============================================ */
+const FAKE_PLACES = [
+  { name: 'Meineke Car Care Center', address: '3200 Highway 61, Springfield, MO 65807', phone: '(555) 111-2222', website: 'meineke.com', hours: 'Mon-Fri 7:30am-6pm, Sat 8am-4pm' },
+  { name: 'Jiffy Lube', address: '1555 National Ave, Springfield, MO 65804', phone: '(555) 333-4444', website: 'jiffylube.com', hours: 'Mon-Sat 8am-7pm, Sun 10am-5pm' },
+  { name: 'Pep Boys Auto Service', address: '2780 S Glenstone Ave, Springfield, MO 65804', phone: '(555) 555-6666', website: 'pepboys.com', hours: 'Mon-Fri 8am-8pm, Sat 8am-7pm, Sun 9am-5pm' },
+  { name: 'Christian Brothers Automotive', address: '4100 S Campbell Ave, Springfield, MO 65807', phone: '(555) 777-8888', website: 'cbac.com', hours: 'Mon-Fri 7am-6pm' },
+];
+
+let placesDebounce = null;
+function fakePlacesSearch(query) {
+  clearTimeout(placesDebounce);
+  const results = document.getElementById('places-results');
+  if (query.length < 2) { results.classList.remove('open'); return; }
+  placesDebounce = setTimeout(() => {
+    const matches = FAKE_PLACES.filter(p => p.name.toLowerCase().includes(query.toLowerCase()));
+    if (matches.length === 0) { results.classList.remove('open'); return; }
+    results.innerHTML = matches.map((p, i) =>
+      `<div class="places-result" onclick="selectPlace(${i}, '${query}')">
+        <div class="places-result-name">${p.name}</div>
+        <div class="places-result-addr">${p.address}</div>
+      </div>`
+    ).join('');
+    results.classList.add('open');
+  }, 300);
+}
+
+function selectPlace(idx, query) {
+  const matches = FAKE_PLACES.filter(p => p.name.toLowerCase().includes(query.toLowerCase()));
+  const place = matches[idx];
+  if (!place) return;
+  document.getElementById('shop-name').value = place.name;
+  document.getElementById('shop-address').value = place.address;
+  document.getElementById('shop-phone').value = place.phone;
+  document.getElementById('shop-website').value = place.website;
+  document.getElementById('shop-hours').value = place.hours;
+  document.getElementById('shop-form-fields').style.display = 'block';
+  document.getElementById('places-results').classList.remove('open');
+  document.getElementById('places-search-input').value = place.name;
+}
+
+function showManualShopForm() {
+  document.getElementById('shop-form-fields').style.display = 'block';
+  document.getElementById('places-results').classList.remove('open');
+  document.getElementById('shop-name').focus();
+}
+
+function openAddShopModal() {
+  document.getElementById('places-search-input').value = '';
+  document.getElementById('shop-name').value = '';
+  document.getElementById('shop-address').value = '';
+  document.getElementById('shop-phone').value = '';
+  document.getElementById('shop-website').value = '';
+  document.getElementById('shop-hours').value = '';
+  document.getElementById('shop-form-fields').style.display = 'none';
+  document.getElementById('places-results').classList.remove('open');
+  openModal('add-shop-modal');
+}
+
+/* ============================================
+   ADD SERVICE RECORD — LOGIC
+   ============================================ */
+let serviceRowCounter = 0;
+
+function addServiceRow() {
+  serviceRowCounter++;
+  const id = serviceRowCounter;
+  const container = document.getElementById('asr-services-container');
+  const catOptions = Object.keys(CATEGORIES).sort().map(c => `<option value="${c}">${c}</option>`).join('');
+  const row = document.createElement('div');
+  row.className = 'service-row';
+  row.id = `svc-row-${id}`;
+  row.innerHTML = `
+    <div class="form-group">
+      <label class="form-label">Category</label>
+      <select class="form-select" id="svc-cat-${id}" onchange="updateServiceOptions(${id})">
+        <option value="">Select...</option>
+        ${catOptions}
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Service</label>
+      <select class="form-select" id="svc-name-${id}" disabled>
+        <option value="">Select category first</option>
+      </select>
+    </div>
+    <div class="form-group service-row-cost">
+      <label class="form-label">Cost</label>
+      <input type="number" class="form-input" id="svc-cost-${id}" placeholder="0.00" oninput="recalcCost()">
+    </div>
+    <button class="service-row-remove" onclick="removeServiceRow(${id})" title="Remove">
+      <i data-lucide="x"></i>
+    </button>`;
+  container.appendChild(row);
+  lucide.createIcons();
+}
+
+function removeServiceRow(id) {
+  const row = document.getElementById(`svc-row-${id}`);
+  if (row) { row.remove(); recalcCost(); }
+}
+
+function updateServiceOptions(id) {
+  const catSel = document.getElementById(`svc-cat-${id}`);
+  const svcSel = document.getElementById(`svc-name-${id}`);
+  const cat = catSel.value;
+  if (!cat) {
+    svcSel.innerHTML = '<option value="">Select category first</option>';
+    svcSel.disabled = true;
+    return;
+  }
+  const services = CATEGORIES[cat] || [];
+  svcSel.innerHTML = '<option value="">Select...</option>' + services.map(s => `<option value="${s}">${s}</option>`).join('');
+  svcSel.disabled = false;
+}
+
+function recalcCost() {
+  let subtotal = 0;
+  document.querySelectorAll('#asr-services-container .service-row').forEach(row => {
+    const costInput = row.querySelector('input[type="number"]');
+    if (costInput && costInput.value) subtotal += parseFloat(costInput.value) || 0;
+  });
+  const shopFee = parseFloat(document.getElementById('asr-shop-fee').value) || 0;
+  const tax = parseFloat(document.getElementById('asr-tax').value) || 0;
+  document.getElementById('asr-subtotal').textContent = `$${subtotal.toFixed(2)}`;
+  document.getElementById('asr-total').textContent = `$${(subtotal + shopFee + tax).toFixed(2)}`;
+}
+
+function shopAutocomplete(query) {
+  const results = document.getElementById('asr-shop-results');
+  if (query.length < 1) { results.classList.remove('open'); return; }
+  const matches = SHOPS.filter(s => s.name.toLowerCase().includes(query.toLowerCase()));
+  if (matches.length === 0) { results.classList.remove('open'); return; }
+  results.innerHTML = matches.map(s =>
+    `<div class="places-result" onclick="document.getElementById('asr-shop').value='${s.name}'; document.getElementById('asr-shop-results').classList.remove('open');">
+      <div class="places-result-name">${s.name}</div>
+      <div class="places-result-addr">${s.address}</div>
+    </div>`
+  ).join('');
+  results.classList.add('open');
+}
+
+function populateNoteLinks() {
+  // Populate the "Link Existing Notes" dropdown in Add Service Record
+  const sel = document.getElementById('asr-link-notes');
+  const notes = HISTORY_DATA.filter(h => h.type === 'note' && !h.resolved);
+  notes.forEach(n => {
+    const d = new Date(n.date+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
+    const preview = n.text.length > 50 ? n.text.substring(0,50) + '...' : n.text;
+    sel.innerHTML += `<option value="${n.id}">${d} — ${preview}</option>`;
+  });
+
+  // Populate the "Link to Service Record" dropdown in Add Note
+  const svcSel = document.getElementById('note-link-service');
+  HISTORY_DATA.filter(h => h.type === 'service').forEach(r => {
+    const d = new Date(r.date+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
+    const name = r.services.length === 1 ? r.services[0].name : r.services.map(s=>s.name).join(', ');
+    svcSel.innerHTML += `<option value="${r.id}">${d} — ${name}</option>`;
+  });
+}
+
+let linkedNoteIds = [];
+function addLinkedNoteChip() {
+  const sel = document.getElementById('asr-link-notes');
+  const val = sel.value;
+  if (!val || linkedNoteIds.includes(val)) { sel.value = ''; return; }
+  linkedNoteIds.push(val);
+  const label = sel.options[sel.selectedIndex].text;
+  const container = document.getElementById('asr-linked-chips');
+  container.innerHTML += `<span class="linked-note-chip" data-note-id="${val}">
+    <i data-lucide="sticky-note" style="width:10px;height:10px;"></i>
+    ${label}
+    <button onclick="removeLinkedNote('${val}')"><i data-lucide="x"></i></button>
+  </span>`;
+  sel.value = '';
+  lucide.createIcons();
+}
+
+function removeLinkedNote(id) {
+  linkedNoteIds = linkedNoteIds.filter(n => n !== id);
+  const chip = document.querySelector(`.linked-note-chip[data-note-id="${id}"]`);
+  if (chip) chip.remove();
+}
+
+function initAddServiceModal() {
+  serviceRowCounter = 0;
+  const container = document.getElementById('asr-services-container');
+  container.innerHTML = '';
+  addServiceRow();
+  document.getElementById('asr-shop').value = '';
+  document.getElementById('asr-shop-fee').value = '';
+  document.getElementById('asr-tax').value = '';
+  document.getElementById('asr-notes').value = '';
+  document.getElementById('asr-subtotal').textContent = '$0.00';
+  document.getElementById('asr-total').textContent = '$0.00';
+  linkedNoteIds = [];
+  document.getElementById('asr-linked-chips').innerHTML = '';
+}
+
+// Close autocomplete dropdowns on outside click
+document.addEventListener('click', e => {
+  if (!e.target.closest('.shop-autocomplete-wrap')) {
+    document.getElementById('asr-shop-results').classList.remove('open');
+  }
+  if (!e.target.closest('#add-shop-modal')) {
+    document.getElementById('places-results').classList.remove('open');
+  }
+});
+
+// Override openModal to init service modal
+const _origOpenModal = openModal;
+openModal = function(id) {
+  if (id === 'add-service-modal') initAddServiceModal();
+  _origOpenModal(id);
+};
+
 /* Init */
 document.addEventListener('DOMContentLoaded', () => {
   lucide.createIcons();
@@ -1534,6 +2022,8 @@ document.addEventListener('DOMContentLoaded', () => {
   populateHistoryFilters();
   renderHistory();
   renderTracker();
+  renderShops();
+  populateNoteLinks();
 });
 </script>
 </body>
