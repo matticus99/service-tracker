@@ -3,9 +3,10 @@ import uuid
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from app.database import get_db
-from app.models import Vehicle, ServiceRecord
+from app.models import Vehicle, ServiceRecord, ServiceRecordItem
 from app.schemas.service_record import ServiceRecordCreate, ServiceRecordUpdate, ServiceRecordOut
 
 router = APIRouter()
@@ -24,31 +25,55 @@ async def list_service_records(vehicle_id: uuid.UUID, db: AsyncSession = Depends
     result = await db.execute(
         select(ServiceRecord)
         .where(ServiceRecord.vehicle_id == vehicle_id)
+        .options(selectinload(ServiceRecord.items))
         .order_by(ServiceRecord.service_date.desc())
     )
-    return result.scalars().all()
+    return result.scalars().unique().all()
 
 
 @router.post("/{vehicle_id}/service-records", response_model=ServiceRecordOut, status_code=201)
 async def create_service_record(vehicle_id: uuid.UUID, data: ServiceRecordCreate, db: AsyncSession = Depends(get_db)):
     vehicle = await _get_vehicle(vehicle_id, db)
-    record = ServiceRecord(vehicle_id=vehicle_id, **data.model_dump())
+
+    record_data = data.model_dump(exclude={"items"})
+    record = ServiceRecord(vehicle_id=vehicle_id, **record_data)
     db.add(record)
+    await db.flush()
+
+    # Create service_record_items if provided
+    if data.items:
+        for item_data in data.items:
+            item = ServiceRecordItem(
+                service_record_id=record.id,
+                **item_data.model_dump(),
+            )
+            db.add(item)
 
     # Update vehicle mileage if this reading is higher
     if record.odometer and record.odometer > vehicle.current_mileage:
         vehicle.current_mileage = record.odometer
 
     await db.commit()
-    await db.refresh(record)
-    return record
+
+    # Re-fetch with items eagerly loaded
+    result = await db.execute(
+        select(ServiceRecord)
+        .where(ServiceRecord.id == record.id)
+        .options(selectinload(ServiceRecord.items))
+    )
+    return result.scalar_one()
 
 
 @router.get("/{vehicle_id}/service-records/{record_id}", response_model=ServiceRecordOut)
 async def get_service_record(vehicle_id: uuid.UUID, record_id: uuid.UUID, db: AsyncSession = Depends(get_db)):
     await _get_vehicle(vehicle_id, db)
-    record = await db.get(ServiceRecord, record_id)
-    if not record or record.vehicle_id != vehicle_id:
+    result = await db.execute(
+        select(ServiceRecord)
+        .where(ServiceRecord.id == record_id, ServiceRecord.vehicle_id == vehicle_id)
+        .options(selectinload(ServiceRecord.items))
+    )
+    record = result.scalar_one_or_none()
+    if not record:
         raise HTTPException(404, "Service record not found")
     return record
 
@@ -58,8 +83,13 @@ async def update_service_record(
     vehicle_id: uuid.UUID, record_id: uuid.UUID, data: ServiceRecordUpdate, db: AsyncSession = Depends(get_db)
 ):
     await _get_vehicle(vehicle_id, db)
-    record = await db.get(ServiceRecord, record_id)
-    if not record or record.vehicle_id != vehicle_id:
+    result = await db.execute(
+        select(ServiceRecord)
+        .where(ServiceRecord.id == record_id, ServiceRecord.vehicle_id == vehicle_id)
+        .options(selectinload(ServiceRecord.items))
+    )
+    record = result.scalar_one_or_none()
+    if not record:
         raise HTTPException(404, "Service record not found")
     for key, value in data.model_dump(exclude_unset=True).items():
         setattr(record, key, value)
