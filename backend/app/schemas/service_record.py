@@ -61,6 +61,14 @@ class ServiceRecordOut(BaseModel):
     shop_fee: float | None = None
     tax: float | None = None
     items: list[ServiceRecordItemOut] = []
+    linked_observation_ids: list[uuid.UUID] = []
     created_at: datetime
 
     model_config = {"from_attributes": True}
+
+    @classmethod
+    def from_record(cls, record):
+        out = cls.model_validate(record)
+        if hasattr(record, "note_service_links"):
+            out.linked_observation_ids = [link.observation_id for link in record.note_service_links]
+        return out
