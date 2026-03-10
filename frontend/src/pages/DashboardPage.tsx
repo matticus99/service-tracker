@@ -1,28 +1,29 @@
-import { useState, useRef } from 'react'
+import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   AlertTriangle,
+  AlertCircle,
   ChevronRight,
-  Droplets,
+  Clock,
   DollarSign,
   TrendingUp,
-  Car,
+  Truck,
   Plus,
-  CheckCircle,
-  RotateCcw,
+  Edit3,
 } from 'lucide-react'
-import { useDashboard, useUpdateMileage, useSettings } from '@/hooks/useApi'
+import { useDashboard, useUpdateMileage, useCategories } from '@/hooks/useApi'
 import { useVehicle } from '@/context/VehicleContext'
 import { useToast } from '@/context/ToastContext'
 import { Card } from '@/components/ui/Card'
 import { Modal } from '@/components/ui/Modal'
+import { ProgressBar } from '@/components/ui/ProgressBar'
 import { PageSkeleton } from '@/components/ui/Skeleton'
 import { ErrorState } from '@/components/ui/ErrorState'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { formatMileage, formatCurrency, formatDate } from '@/lib/format'
 import { AddServiceRecordModal } from '@/components/forms/AddServiceRecordModal'
-import { AddObservationModal } from '@/components/forms/AddObservationModal'
-import type { Dashboard } from '@/types/api'
+import type { Dashboard, IntervalItem, IntervalStatus } from '@/types/api'
+import { Car } from 'lucide-react'
 
 export function DashboardPage() {
   const { vehicleId, isLoading: vehiclesLoading } = useVehicle()
@@ -42,15 +43,41 @@ export function DashboardPage() {
 
   return (
     <div className="p-4 flex flex-col gap-3 max-w-6xl mx-auto">
+      <VehicleHeroCard data={data} />
       <QuickActions />
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+        <UpcomingCard data={data} />
         <AttentionCard data={data} />
-        <OilChangeCard data={data} />
         <CostSummaryCard data={data} />
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-        <StatsCard data={data} />
-        <VehicleHeroCard data={data} />
+        <MileageCard data={data} />
+      </div>
+    </div>
+  )
+}
+
+function VehicleHeroCard({ data }: { data: Dashboard }) {
+  const v = data.vehicle
+
+  return (
+    <div className="relative flex items-center gap-4 p-4 lg:p-5 bg-gradient-to-b from-bg-elevated to-bg-card rounded-[14px] border border-border-default overflow-hidden animate-card-in">
+      <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-accent via-purple-400 to-accent" />
+      <div className="w-24 h-24 lg:w-[110px] lg:h-[110px] rounded-[10px] bg-bg-body border border-border-default shrink-0 flex flex-col items-center justify-center cursor-pointer">
+        <Truck className="w-10 h-10 text-text-muted" />
+        <span className="text-[0.55rem] text-text-muted mt-1 uppercase font-semibold">Photo</span>
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="text-xs text-text-secondary font-medium">
+          {v.year} {v.make}
+        </div>
+        <div className="text-xl font-extrabold tracking-tight">
+          {v.model}{v.trim ? ` ${v.trim}` : ''}
+        </div>
+        <div className="font-mono text-[1.7rem] lg:text-[2rem] font-semibold text-accent tracking-tight leading-tight">
+          {formatMileage(v.current_mileage)}
+        </div>
+        <div className="text-[0.7rem] text-text-muted font-medium">miles</div>
       </div>
     </div>
   )
@@ -59,43 +86,166 @@ export function DashboardPage() {
 function QuickActions() {
   const { vehicleId, vehicle } = useVehicle()
   const [serviceOpen, setServiceOpen] = useState(false)
-  const [observationOpen, setObservationOpen] = useState(false)
 
   return (
     <>
-      <div className="grid grid-cols-2 gap-2 max-w-[400px]">
+      <div className="max-w-[400px] animate-card-in" style={{ animationDelay: '0.05s' }}>
         <button
           onClick={() => setServiceOpen(true)}
-          className="flex items-center justify-center gap-2 px-4 py-3 bg-accent-subtle text-accent rounded-lg hover:bg-accent/20 transition-colors text-sm font-medium"
+          className="inline-flex items-center gap-2 px-5 py-2.5 bg-accent text-white rounded-[10px] font-semibold text-sm hover:bg-accent-hover active:scale-[0.97] transition-all"
         >
-          <Plus className="w-4 h-4" />
-          Service Record
-        </button>
-        <button
-          onClick={() => setObservationOpen(true)}
-          className="flex items-center justify-center gap-2 px-4 py-3 bg-accent-subtle text-accent rounded-lg hover:bg-accent/20 transition-colors text-sm font-medium"
-        >
-          <Plus className="w-4 h-4" />
-          Observation
+          <Plus className="w-[18px] h-[18px]" />
+          Add Service Record
         </button>
       </div>
       {vehicleId && (
-        <>
-          <AddServiceRecordModal
-            open={serviceOpen}
-            onClose={() => setServiceOpen(false)}
-            vehicleId={vehicleId}
-            currentMileage={vehicle?.current_mileage ?? 0}
-          />
-          <AddObservationModal
-            open={observationOpen}
-            onClose={() => setObservationOpen(false)}
-            vehicleId={vehicleId}
-            currentMileage={vehicle?.current_mileage ?? 0}
-          />
-        </>
+        <AddServiceRecordModal
+          open={serviceOpen}
+          onClose={() => setServiceOpen(false)}
+          vehicleId={vehicleId}
+          currentMileage={vehicle?.current_mileage ?? 0}
+        />
       )}
     </>
+  )
+}
+
+function UpcomingCard({ data }: { data: Dashboard }) {
+  const navigate = useNavigate()
+  const { data: categories } = useCategories()
+
+  const upcomingItems = useMemo(() => {
+    const items: IntervalItem[] = [
+      ...data.overdue_items,
+      ...data.due_soon_items,
+    ]
+    return items.slice(0, 3)
+  }, [data.overdue_items, data.due_soon_items])
+
+  const totalCost = useMemo(() => {
+    return [...data.overdue_items, ...data.due_soon_items].reduce(
+      (sum, item) => sum + (item.estimated_cost ?? 0),
+      0,
+    )
+  }, [data.overdue_items, data.due_soon_items])
+
+  const getCategoryName = (categoryId: string | null) => {
+    if (!categoryId || !categories) return ''
+    for (const cat of categories) {
+      if (cat.id === categoryId) return cat.name
+    }
+    return ''
+  }
+
+  const getItemStatus = (item: IntervalItem): IntervalStatus => {
+    return (item.status ?? 'ok') as IntervalStatus
+  }
+
+  const getProgressPercent = (item: IntervalItem): number => {
+    if (!item.next_service_miles || !item.last_service_miles) return 0
+    const total = item.next_service_miles - item.last_service_miles
+    if (total <= 0) return 100
+    const current = (data.vehicle.current_mileage ?? 0) - item.last_service_miles
+    return Math.min(Math.max((current / total) * 100, 0), 100)
+  }
+
+  const getMilesLabel = (item: IntervalItem): { text: string; status: IntervalStatus } => {
+    const remaining = item.miles_remaining ?? 0
+    const status = getItemStatus(item)
+    if (remaining < 0) {
+      return { text: `${formatMileage(Math.abs(remaining))} mi over`, status }
+    }
+    return { text: `${formatMileage(remaining)} mi left`, status }
+  }
+
+  if (upcomingItems.length === 0) {
+    return (
+      <Card delay={0.1}>
+        <div className="flex items-center justify-between mb-3.5">
+          <span className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-text-secondary">
+            <Clock className="w-4 h-4" /> Upcoming
+          </span>
+        </div>
+        <div className="text-sm text-text-muted">No upcoming services</div>
+      </Card>
+    )
+  }
+
+  return (
+    <Card delay={0.1}>
+      <div className="flex items-center justify-between mb-3.5">
+        <span className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-text-secondary">
+          <Clock className="w-4 h-4" /> Upcoming{' '}
+          <span className="text-text-muted font-medium text-[0.8rem] normal-case">
+            ({formatCurrency(totalCost)})
+          </span>
+        </span>
+        <button
+          onClick={() => navigate('/tracker')}
+          className="text-[0.7rem] text-text-muted hover:text-text-secondary transition-colors cursor-pointer"
+        >
+          View all &rarr;
+        </button>
+      </div>
+      <div>
+        {upcomingItems.map((item, i) => {
+          const milesLabel = getMilesLabel(item)
+          const status = getItemStatus(item)
+          const statusColorClass =
+            status === 'overdue'
+              ? 'text-status-overdue'
+              : status === 'due_soon'
+                ? 'text-status-due-soon'
+                : 'text-status-ok'
+          const dotColorClass =
+            status === 'overdue'
+              ? 'bg-status-overdue shadow-[0_0_6px_rgba(240,68,68,0.5)]'
+              : status === 'due_soon'
+                ? 'bg-status-due-soon'
+                : 'bg-status-ok'
+
+          return (
+            <div
+              key={item.id}
+              className={`flex items-center gap-3 py-2.5 cursor-pointer ${i < upcomingItems.length - 1 ? 'border-b border-border-subtle' : ''} ${i === 0 ? '' : ''}`}
+              onClick={() => navigate('/tracker')}
+            >
+              <span className={`w-2 h-2 rounded-full shrink-0 ${dotColorClass}`} />
+              <div className="flex-1 min-w-0">
+                <div className="font-semibold text-sm">
+                  {item.name}{' '}
+                  <span className="text-text-muted font-normal ml-1.5">
+                    ({formatCurrency(item.estimated_cost ?? 0)})
+                  </span>
+                </div>
+                <div className="text-[0.7rem] text-text-muted mt-0.5">
+                  {getCategoryName(item.category_id)}
+                </div>
+              </div>
+              <div>
+                <div className={`font-mono text-xs font-medium text-right whitespace-nowrap ${statusColorClass}`}>
+                  {milesLabel.text}
+                </div>
+                <div className="w-full mt-1">
+                  <div className="h-1 bg-progress-track rounded-full overflow-visible relative">
+                    <div
+                      className={`h-full rounded-full transition-all duration-500 ${
+                        status === 'overdue'
+                          ? 'bg-status-overdue'
+                          : status === 'due_soon'
+                            ? 'bg-status-due-soon'
+                            : 'bg-status-ok'
+                      }`}
+                      style={{ width: `${Math.max(getProgressPercent(item), 0)}%` }}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    </Card>
   )
 }
 
@@ -106,114 +256,59 @@ function AttentionCard({ data }: { data: Dashboard }) {
 
   if (overdueCount === 0 && dueSoonCount === 0) {
     return (
-      <Card delay={0.06} className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-full bg-status-ok-subtle flex items-center justify-center">
-          <CheckCircle className="w-5 h-5 text-status-ok" />
+      <Card delay={0.15}>
+        <div className="flex items-center gap-2 mb-3.5">
+          <AlertTriangle className="w-4 h-4 text-text-secondary" />
+          <span className="text-xs font-bold uppercase tracking-wider text-text-secondary">
+            Needs Attention
+          </span>
         </div>
-        <div>
-          <div className="font-semibold text-status-ok">All Up to Date</div>
-          <div className="text-xs text-text-secondary">
-            No services need attention
-          </div>
-        </div>
+        <div className="text-sm text-text-muted">All services up to date</div>
       </Card>
     )
   }
 
   return (
-    <Card delay={0.06}>
-      <div className="flex items-center gap-2 mb-3">
-        <AlertTriangle className="w-4 h-4 text-status-overdue" />
-        <span className="text-xs font-bold uppercase tracking-wider text-status-overdue">
+    <Card delay={0.15}>
+      <div className="flex items-center gap-2 mb-3.5">
+        <AlertTriangle className="w-4 h-4 text-text-secondary" />
+        <span className="text-xs font-bold uppercase tracking-wider text-text-secondary">
           Needs Attention
         </span>
       </div>
       {overdueCount > 0 && (
-        <button
-          onClick={() => navigate('/tracker?status=overdue')}
-          className="w-full flex items-center gap-3 py-2.5 px-3 -mx-3 hover:bg-bg-card-hover rounded-lg transition-colors"
+        <div
+          onClick={() => navigate('/tracker')}
+          className="flex items-center gap-2.5 py-2 cursor-pointer hover:bg-bg-card-hover -mx-2 px-2 rounded-md transition-colors"
         >
-          <span className="w-2 h-2 rounded-full bg-status-overdue animate-pulse-dot" />
-          <div className="flex-1 text-left">
-            <span className="text-sm font-medium">{overdueCount} Overdue</span>
-            <div className="text-xs text-text-secondary truncate">
-              {data.overdue_items.map((i) => i.name).join(', ')}
-            </div>
+          <div className="w-8 h-8 rounded-full bg-status-overdue-subtle text-status-overdue flex items-center justify-center shrink-0">
+            <AlertCircle className="w-4 h-4" />
           </div>
-          <ChevronRight className="w-4 h-4 text-text-muted" />
-        </button>
+          <div className="flex-1 text-sm">
+            <strong className="font-semibold">{overdueCount} overdue</strong>{' '}
+            service{overdueCount !== 1 ? 's' : ''}
+          </div>
+          <div className="text-text-muted">
+            <ChevronRight className="w-3.5 h-3.5" />
+          </div>
+        </div>
       )}
       {dueSoonCount > 0 && (
-        <button
-          onClick={() => navigate('/tracker?status=due_soon')}
-          className="w-full flex items-center gap-3 py-2.5 px-3 -mx-3 hover:bg-bg-card-hover rounded-lg transition-colors"
+        <div
+          onClick={() => navigate('/tracker')}
+          className="flex items-center gap-2.5 py-2 cursor-pointer hover:bg-bg-card-hover -mx-2 px-2 rounded-md transition-colors"
         >
-          <span className="w-2 h-2 rounded-full bg-status-due-soon" />
-          <div className="flex-1 text-left">
-            <span className="text-sm font-medium">
-              {dueSoonCount} Due Soon
-            </span>
-            <div className="text-xs text-text-secondary truncate">
-              {data.due_soon_items.map((i) => i.name).join(', ')}
-            </div>
+          <div className="w-8 h-8 rounded-full bg-status-due-soon-subtle text-status-due-soon flex items-center justify-center shrink-0">
+            <Clock className="w-4 h-4" />
           </div>
-          <ChevronRight className="w-4 h-4 text-text-muted" />
-        </button>
-      )}
-    </Card>
-  )
-}
-
-function OilChangeCard({ data }: { data: Dashboard }) {
-  const oc = data.next_oil_change
-
-  return (
-    <Card delay={0.12}>
-      <div className="flex items-center gap-2 mb-3">
-        <Droplets className="w-4 h-4 text-accent" />
-        <span className="text-xs font-bold uppercase tracking-wider text-text-secondary">
-          Next Oil Change
-        </span>
-      </div>
-      {oc.due_at_miles ? (
-        <div className="space-y-2">
-          <div className="flex justify-between">
-            <span className="text-sm text-text-secondary">Due at</span>
-            <span className="text-sm font-mono font-semibold">
-              {formatMileage(oc.due_at_miles)} mi
-            </span>
+          <div className="flex-1 text-sm">
+            <strong className="font-semibold">{dueSoonCount} due soon</strong>{' '}
+            service{dueSoonCount !== 1 ? 's' : ''}
           </div>
-          <div className="flex justify-between">
-            <span className="text-sm text-text-secondary">Remaining</span>
-            <span
-              className={`text-sm font-mono font-semibold ${
-                oc.miles_remaining !== null && oc.miles_remaining <= 0
-                  ? 'text-status-overdue'
-                  : 'text-status-ok'
-              }`}
-            >
-              {oc.miles_remaining !== null
-                ? `${formatMileage(Math.abs(oc.miles_remaining))} mi${oc.miles_remaining < 0 ? ' over' : ''}`
-                : '—'}
-            </span>
+          <div className="text-text-muted">
+            <ChevronRight className="w-3.5 h-3.5" />
           </div>
-          {oc.estimated_weeks !== null && oc.estimated_weeks > 0 && (
-            <div className="flex justify-between">
-              <span className="text-sm text-text-secondary">Estimated</span>
-              <span className="text-sm text-text-secondary">
-                ~{Math.round(oc.estimated_weeks)} weeks
-              </span>
-            </div>
-          )}
-          {oc.last_date && (
-            <div className="pt-2 border-t border-border-subtle text-xs text-text-muted">
-              Last: {formatDate(oc.last_date)}
-              {oc.last_facility && ` at ${oc.last_facility}`}
-            </div>
-          )}
         </div>
-      ) : (
-        <div className="text-sm text-text-muted">No oil change data yet</div>
       )}
     </Card>
   )
@@ -221,99 +316,37 @@ function OilChangeCard({ data }: { data: Dashboard }) {
 
 function CostSummaryCard({ data }: { data: Dashboard }) {
   const cs = data.cost_summary
-  const { data: settings } = useSettings()
-  const [shopFeeOverride, setShopFeeOverride] = useState<number | null>(null)
-  const [editing, setEditing] = useState(false)
-  const inputRef = useRef<HTMLInputElement>(null)
-
-  const hasItems = cs.overdue_count > 0 || cs.due_soon_count > 0
-  const effectiveFee = hasItems ? (shopFeeOverride ?? cs.shop_fee) : 0
-  const taxRate = settings?.tax_rate ?? 0.07
-  const tax = hasItems ? (cs.subtotal + effectiveFee) * taxRate : 0
-  const total = hasItems ? cs.subtotal + effectiveFee + tax : 0
-
-  function handleEditBlur() {
-    setEditing(false)
-    const val = inputRef.current?.value
-    if (val === undefined || val === '') return
-    const num = parseFloat(val)
-    if (!isNaN(num) && num >= 0) {
-      setShopFeeOverride(num)
-    }
-  }
 
   return (
-    <Card delay={0.18}>
-      <div className="flex items-center gap-2 mb-3">
-        <DollarSign className="w-4 h-4 text-accent" />
+    <Card delay={0.2}>
+      <div className="flex items-center gap-2 mb-3.5">
+        <DollarSign className="w-4 h-4 text-text-secondary" />
         <span className="text-xs font-bold uppercase tracking-wider text-text-secondary">
           Upcoming Costs
         </span>
       </div>
-      <div className="space-y-1.5">
-        <div className="flex justify-between text-sm">
-          <span className="text-text-secondary">
-            Overdue ({cs.overdue_count})
-          </span>
-          <span className="font-mono">{formatCurrency(cs.overdue_total)}</span>
+      <div>
+        <div className="flex justify-between py-2 text-[0.9rem]">
+          <span>Overdue ({cs.overdue_count})</span>
+          <span className="font-mono text-sm font-medium">{formatCurrency(cs.overdue_total)}</span>
         </div>
-        <div className="flex justify-between text-sm">
-          <span className="text-text-secondary">
-            Due Soon ({cs.due_soon_count})
-          </span>
-          <span className="font-mono">
-            {formatCurrency(cs.due_soon_total)}
-          </span>
+        <div className="flex justify-between py-2 text-[0.9rem]">
+          <span>Due Soon ({cs.due_soon_count})</span>
+          <span className="font-mono text-sm font-medium">{formatCurrency(cs.due_soon_total)}</span>
         </div>
-        <div className="border-t border-border-subtle border-dashed my-2" />
-        <div className="flex justify-between items-center text-sm">
-          <span className="text-text-secondary flex items-center gap-1">
-            Shop Fee
-            {shopFeeOverride !== null && (
-              <button
-                onClick={() => setShopFeeOverride(null)}
-                title="Reset to default"
-                className="text-text-muted hover:text-accent transition-colors p-0.5"
-              >
-                <RotateCcw className="w-3 h-3" />
-              </button>
-            )}
-          </span>
-          {!hasItems ? (
-            <span className="font-mono text-text-muted">—</span>
-          ) : editing ? (
-            <input
-              ref={inputRef}
-              type="number"
-              min="0"
-              step="0.01"
-              defaultValue={effectiveFee.toFixed(2)}
-              onBlur={handleEditBlur}
-              onKeyDown={(e) => e.key === 'Enter' && inputRef.current?.blur()}
-              autoFocus
-              className="w-20 px-1.5 py-0.5 bg-bg-input border border-border-default rounded text-right font-mono text-sm text-text-primary focus:outline-none focus:border-accent"
-            />
-          ) : (
-            <button
-              onClick={() => setEditing(true)}
-              className="font-mono hover:text-accent transition-colors cursor-pointer"
-              title="Click to edit"
-            >
-              {formatCurrency(effectiveFee)}
-            </button>
-          )}
+        <div className="border-t border-dashed border-border-default my-1" />
+        <div className="flex justify-between py-2 text-[0.9rem]">
+          <span className="text-text-muted">Shop Fee</span>
+          <span className="font-mono text-sm font-medium text-text-muted">&mdash;</span>
         </div>
-        <div className="flex justify-between text-sm">
-          <span className="text-text-secondary">Tax</span>
-          <span className="font-mono">
-            {hasItems ? formatCurrency(tax) : <span className="text-text-muted">—</span>}
-          </span>
+        <div className="flex justify-between py-2 text-[0.9rem]">
+          <span className="text-text-muted">Tax</span>
+          <span className="font-mono text-sm font-medium text-text-muted">&mdash;</span>
         </div>
-        <div className="border-t border-border-subtle my-2" />
-        <div className="flex justify-between font-semibold">
-          <span>Total</span>
-          <span className="font-mono text-accent">
-            {hasItems ? formatCurrency(total) : <span className="text-text-muted font-normal">—</span>}
+        <div className="flex justify-between pt-2.5 mt-0.5 border-t border-dashed border-border-default">
+          <span className="font-extrabold text-base">Total</span>
+          <span className="font-mono text-[0.95rem] font-bold">
+            {formatCurrency(cs.overdue_total + cs.due_soon_total)}
           </span>
         </div>
       </div>
@@ -321,96 +354,37 @@ function CostSummaryCard({ data }: { data: Dashboard }) {
   )
 }
 
-function StatsCard({ data }: { data: Dashboard }) {
+function MileageCard({ data }: { data: Dashboard }) {
+  const [mileageOpen, setMileageOpen] = useState(false)
+  const v = data.vehicle
   const ms = data.mileage_stats
 
   return (
-    <Card delay={0.24}>
-      <div className="flex items-center gap-2 mb-3">
-        <TrendingUp className="w-4 h-4 text-accent" />
-        <span className="text-xs font-bold uppercase tracking-wider text-text-secondary">
-          Mileage Averages
+    <Card delay={0.25}>
+      <div className="flex items-center justify-between mb-3.5">
+        <span className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-text-secondary">
+          <TrendingUp className="w-4 h-4" /> Mileage
         </span>
+        <button
+          onClick={() => setMileageOpen(true)}
+          className="w-9 h-9 flex items-center justify-center rounded-[10px] hover:bg-bg-card-hover transition-colors"
+        >
+          <Edit3 className="w-5 h-5 text-text-secondary" />
+        </button>
       </div>
-      {ms.data_points >= 2 ? (
-        <>
-          <div className="grid grid-cols-3 gap-4">
-            <div className="text-center">
-              <div className="text-xl font-mono font-bold">
-                {Math.round(ms.daily)}
-              </div>
-              <div className="text-[11px] uppercase tracking-wider text-text-muted">
-                mi/day
-              </div>
-            </div>
-            <div className="text-center">
-              <div className="text-xl font-mono font-bold">
-                {Math.round(ms.weekly)}
-              </div>
-              <div className="text-[11px] uppercase tracking-wider text-text-muted">
-                mi/week
-              </div>
-            </div>
-            <div className="text-center">
-              <div className="text-xl font-mono font-bold">
-                {formatMileage(Math.round(ms.monthly))}
-              </div>
-              <div className="text-[11px] uppercase tracking-wider text-text-muted">
-                mi/month
-              </div>
-            </div>
-          </div>
-          <div className="mt-3 text-xs text-text-muted text-center">
-            Based on {ms.data_points} oil changes
-          </div>
-        </>
-      ) : (
-        <div className="text-sm text-text-muted">
-          Need at least 2 oil changes to calculate averages
+      <div className="flex items-baseline gap-2 mb-2.5">
+        <span className="font-mono text-xl font-bold">{formatMileage(v.current_mileage)}</span>
+        <span className="text-xs text-text-secondary">current</span>
+      </div>
+      {ms.data_points >= 2 && (
+        <div className="flex items-baseline gap-2 mb-2.5">
+          <span className="font-mono text-base font-bold">~{formatMileage(Math.round(ms.monthly))}</span>
+          <span className="text-xs text-text-secondary">mi / month avg</span>
         </div>
       )}
-    </Card>
-  )
-}
-
-function VehicleHeroCard({ data }: { data: Dashboard }) {
-  const [mileageOpen, setMileageOpen] = useState(false)
-  const v = data.vehicle
-
-  return (
-    <Card delay={0.3}>
-      <div className="flex items-center gap-2 mb-3">
-        <Car className="w-4 h-4 text-accent" />
-        <span className="text-xs font-bold uppercase tracking-wider text-text-secondary">
-          Vehicle Info
-        </span>
+      <div className="text-[0.7rem] text-text-muted mt-0.5">
+        Last updated: {formatDate(v.created_at)}
       </div>
-      <div className="flex items-center gap-4">
-        <div className="w-20 h-20 lg:w-24 lg:h-24 rounded-xl bg-bg-elevated flex items-center justify-center shrink-0">
-          <Car className="w-8 h-8 text-text-muted" />
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className="font-semibold text-lg">
-            {v.year} {v.make} {v.model}
-          </div>
-          {v.trim && (
-            <div className="text-sm text-text-secondary">{v.trim}</div>
-          )}
-          {v.color && (
-            <div className="text-xs text-text-muted">{v.color}</div>
-          )}
-          <div className="mt-2 font-mono text-2xl font-bold">
-            {formatMileage(v.current_mileage)}{' '}
-            <span className="text-sm text-text-muted font-sans">mi</span>
-          </div>
-        </div>
-      </div>
-      <button
-        onClick={() => setMileageOpen(true)}
-        className="mt-3 w-full py-2.5 bg-accent-subtle text-accent rounded-lg hover:bg-accent/20 transition-colors text-sm font-medium"
-      >
-        Update Mileage
-      </button>
       <UpdateMileageModal
         open={mileageOpen}
         onClose={() => setMileageOpen(false)}
