@@ -38,11 +38,12 @@ export function useServiceHistory(vehicleId: string | undefined) {
   return useQuery({
     queryKey: ['service-history', vehicleId],
     queryFn: async () => {
-      const [oilChanges, serviceRecords] = await Promise.all([
+      const [oilChanges, serviceRecords, observations] = await Promise.all([
         api.oilChanges.list(vehicleId!),
         api.serviceRecords.list(vehicleId!),
+        api.observations.list(vehicleId!),
       ])
-      return mergeHistory(oilChanges, serviceRecords)
+      return mergeHistory(oilChanges, serviceRecords, observations)
     },
     enabled: !!vehicleId,
   })

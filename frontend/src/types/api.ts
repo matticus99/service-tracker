@@ -129,6 +129,7 @@ export interface Settings {
 export type ServiceHistoryEntry =
   | { type: 'oil_change'; data: OilChange }
   | { type: 'service'; data: ServiceRecord }
+  | { type: 'observation'; data: Observation }
 
 export type IntervalStatus = 'overdue' | 'due_soon' | 'ok' | 'ad_hoc'
 
