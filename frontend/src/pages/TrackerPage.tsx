@@ -2,25 +2,23 @@ import { useState, useMemo, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import {
   ChevronDown,
-  ChevronRight,
   Gauge,
   Calendar,
   DollarSign,
   Plus,
-  Pencil,
+  Tag,
   MapPin,
 } from 'lucide-react'
 import {
   useIntervalItems,
+  useCategories,
   useSettings,
   useMarkServiced,
 } from '@/hooks/useApi'
 import { useVehicle } from '@/context/VehicleContext'
 import { useToast } from '@/context/ToastContext'
-import { StatusCard } from '@/components/ui/Card'
 import { Card } from '@/components/ui/Card'
-import { ProgressBar } from '@/components/ui/ProgressBar'
-import { TypeBadge } from '@/components/ui/Badge'
+import { StatusBadge } from '@/components/ui/Badge'
 import { Modal } from '@/components/ui/Modal'
 import { PageSkeleton } from '@/components/ui/Skeleton'
 import { ErrorState } from '@/components/ui/ErrorState'
@@ -28,7 +26,7 @@ import { EmptyState } from '@/components/ui/EmptyState'
 import { IntervalItemFormModal } from '@/components/forms/IntervalItemFormModal'
 import { ShopAutocomplete } from '@/components/forms/ShopAutocomplete'
 import { formatMileage, formatCurrency, formatDate } from '@/lib/format'
-import type { IntervalItem, IntervalStatus } from '@/types/api'
+import type { IntervalItem, IntervalStatus, ServiceCategory } from '@/types/api'
 
 const STATUS_ORDER: IntervalStatus[] = ['overdue', 'due_soon', 'ok', 'ad_hoc']
 const STATUS_LABELS: Record<IntervalStatus, string> = {
@@ -44,41 +42,77 @@ const DOT_COLORS: Record<IntervalStatus, string> = {
   ad_hoc: 'bg-status-adhoc',
 }
 
+type GroupMode = 'status' | 'category'
+
 export function TrackerPage() {
   const { vehicleId, vehicle } = useVehicle()
   const { data: items, isLoading, error, refetch } = useIntervalItems(vehicleId)
+  const { data: categories } = useCategories()
   const { data: settings } = useSettings()
   const [searchParams] = useSearchParams()
   const highlightStatus = searchParams.get('status')
   const [createOpen, setCreateOpen] = useState(false)
+  const [groupMode, setGroupMode] = useState<GroupMode>('status')
 
-  const grouped = useMemo(() => {
-    if (!items) return new Map<IntervalStatus, IntervalItem[]>()
+  const allItems = items ?? []
+
+  const statusGroups = useMemo(() => {
     const groups = new Map<IntervalStatus, IntervalItem[]>()
-    for (const status of STATUS_ORDER) {
-      groups.set(status, [])
-    }
-    for (const item of items) {
+    for (const status of STATUS_ORDER) groups.set(status, [])
+    for (const item of allItems) {
       const s = (item.status ?? 'ad_hoc') as IntervalStatus
       groups.get(s)?.push(item)
     }
     return groups
-  }, [items])
+  }, [allItems])
+
+  const categoryGroups = useMemo(() => {
+    const groups = new Map<string, { name: string; items: IntervalItem[] }>()
+    for (const item of allItems) {
+      const catId = item.category_id ?? 'uncategorized'
+      if (!groups.has(catId)) {
+        const catName = categories?.find((c) => c.id === catId)?.name ?? 'Uncategorized'
+        groups.set(catId, { name: catName, items: [] })
+      }
+      groups.get(catId)!.items.push(item)
+    }
+    return Array.from(groups.entries()).sort((a, b) => a[1].name.localeCompare(b[1].name))
+  }, [allItems, categories])
 
   if (isLoading) return <PageSkeleton cards={4} />
   if (error) return <ErrorState onRetry={() => refetch()} />
 
-  const allItems = items ?? []
-
   return (
-    <div className="p-4 max-w-4xl mx-auto flex flex-col gap-3">
-      <button
-        onClick={() => setCreateOpen(true)}
-        className="self-start flex items-center gap-2 px-4 py-2 bg-accent-subtle text-accent rounded-lg hover:bg-accent/20 transition-colors text-sm font-medium"
-      >
-        <Plus className="w-4 h-4" />
-        Interval Item
-      </button>
+    <div className="p-4 max-w-5xl mx-auto flex flex-col gap-3">
+      {/* Toolbar */}
+      <div className="flex items-center justify-between mb-1">
+        <div className="inline-flex bg-bg-card border border-border-default rounded-[10px] overflow-hidden">
+          <button
+            onClick={() => setGroupMode('status')}
+            className={`px-4 py-[7px] text-[0.78rem] font-semibold transition-all ${
+              groupMode === 'status'
+                ? 'bg-accent text-white'
+                : 'text-text-secondary hover:bg-bg-card-hover hover:text-text-primary'
+            }`}
+          >
+            By Status
+          </button>
+          <button
+            onClick={() => setGroupMode('category')}
+            className={`px-4 py-[7px] text-[0.78rem] font-semibold transition-all ${
+              groupMode === 'category'
+                ? 'bg-accent text-white'
+                : 'text-text-secondary hover:bg-bg-card-hover hover:text-text-primary'
+            }`}
+          >
+            By Category
+          </button>
+        </div>
+        <span className="text-xs text-text-muted font-medium">
+          {allItems.length} tracked items
+        </span>
+      </div>
+
       {allItems.length === 0 ? (
         <EmptyState
           icon={<Gauge className="w-10 h-10" />}
@@ -87,27 +121,47 @@ export function TrackerPage() {
         />
       ) : (
         <>
-          {STATUS_ORDER.map((status) => {
-            const sectionItems = grouped.get(status) ?? []
-            if (sectionItems.length === 0) return null
-            return (
-              <TrackerSection
-                key={status}
-                status={status}
-                items={sectionItems}
-                currentMileage={vehicle?.current_mileage ?? 0}
-                vehicleId={vehicleId!}
-                defaultExpanded={
-                  status === 'overdue' ||
-                  status === 'due_soon' ||
-                  highlightStatus === status
-                }
-              />
-            )
-          })}
+          {groupMode === 'status'
+            ? STATUS_ORDER.map((status) => {
+                const sectionItems = statusGroups.get(status) ?? []
+                if (sectionItems.length === 0) return null
+                return (
+                  <TrackerSection
+                    key={status}
+                    label={STATUS_LABELS[status]}
+                    dotColor={DOT_COLORS[status]}
+                    isOverdue={status === 'overdue'}
+                    count={sectionItems.length}
+                    items={sectionItems}
+                    currentMileage={vehicle?.current_mileage ?? 0}
+                    vehicleId={vehicleId!}
+                    categories={categories ?? []}
+                    defaultExpanded={
+                      status === 'overdue' ||
+                      status === 'due_soon' ||
+                      highlightStatus === status
+                    }
+                  />
+                )
+              })
+            : categoryGroups.map(([catId, group]) => (
+                <TrackerSection
+                  key={catId}
+                  label={group.name}
+                  dotColor="bg-accent"
+                  isOverdue={false}
+                  count={group.items.length}
+                  items={group.items}
+                  currentMileage={vehicle?.current_mileage ?? 0}
+                  vehicleId={vehicleId!}
+                  categories={categories ?? []}
+                  defaultExpanded={true}
+                />
+              ))}
           <CostSummaryFooter items={allItems} settings={settings} />
         </>
       )}
+
       {vehicleId && (
         <IntervalItemFormModal
           open={createOpen}
@@ -120,16 +174,24 @@ export function TrackerPage() {
 }
 
 function TrackerSection({
-  status,
+  label,
+  dotColor,
+  isOverdue,
+  count,
   items,
   currentMileage,
   vehicleId,
+  categories,
   defaultExpanded,
 }: {
-  status: IntervalStatus
+  label: string
+  dotColor: string
+  isOverdue: boolean
+  count: number
   items: IntervalItem[]
   currentMileage: number
   vehicleId: string
+  categories: ServiceCategory[]
   defaultExpanded: boolean
 }) {
   const [expanded, setExpanded] = useState(defaultExpanded)
@@ -138,135 +200,175 @@ function TrackerSection({
     <div>
       <button
         onClick={() => setExpanded(!expanded)}
-        className="w-full flex items-center gap-3 py-2 group"
+        className="w-full flex items-center gap-2.5 py-2 group cursor-pointer"
       >
         <span
-          className={`w-2.5 h-2.5 rounded-full ${DOT_COLORS[status]} ${status === 'overdue' ? 'animate-pulse-dot' : ''}`}
+          className={`w-2.5 h-2.5 rounded-full ${dotColor} ${isOverdue ? 'animate-pulse-dot' : ''}`}
         />
-        <span className="text-xs font-bold uppercase tracking-wider text-text-secondary">
-          {STATUS_LABELS[status]} ({items.length})
+        <span className="text-[0.8rem] font-bold uppercase tracking-wider">
+          {label}
         </span>
+        <span className="text-xs text-text-muted font-medium">({count})</span>
         <div className="flex-1" />
-        {expanded ? (
-          <ChevronDown className="w-4 h-4 text-text-muted" />
-        ) : (
-          <ChevronRight className="w-4 h-4 text-text-muted" />
-        )}
+        <span
+          className={`text-text-muted transition-transform duration-200 ${expanded ? '' : '-rotate-90'}`}
+        >
+          <ChevronDown className="w-4 h-4" />
+        </span>
       </button>
-      {expanded && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 mt-1">
+      <div
+        className={`overflow-hidden transition-all duration-300 ${expanded ? 'max-h-[5000px] opacity-100' : 'max-h-0 opacity-0'}`}
+      >
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-2.5 mt-1">
           {items.map((item, i) => (
             <TrackerItemCard
               key={item.id}
               item={item}
-              status={status}
               currentMileage={currentMileage}
               vehicleId={vehicleId}
+              categories={categories}
               delay={i * 0.04}
             />
           ))}
         </div>
-      )}
+      </div>
     </div>
   )
 }
 
 function TrackerItemCard({
   item,
-  status,
   currentMileage,
   vehicleId,
+  categories,
   delay,
 }: {
   item: IntervalItem
-  status: IntervalStatus
   currentMileage: number
   vehicleId: string
+  categories: ServiceCategory[]
   delay: number
 }) {
   const [servicedOpen, setServicedOpen] = useState(false)
   const [editOpen, setEditOpen] = useState(false)
+  const status = (item.status ?? 'ad_hoc') as IntervalStatus
 
-  const percent = calcPercent(item, currentMileage)
+  const categoryName = useMemo(() => {
+    if (!item.category_id) return ''
+    return categories.find((c) => c.id === item.category_id)?.name ?? ''
+  }, [item.category_id, categories])
+
+  const lastDate = item.last_service_date
+    ? new Date(item.last_service_date + 'T12:00:00').toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+      })
+    : null
+
+  const costStr = item.estimated_cost != null && item.estimated_cost > 0
+    ? formatCurrency(item.estimated_cost)
+    : item.estimated_cost === 0
+      ? 'Free'
+      : ''
+
+  const { progressPercent, progressLabel, nextLabel } = useMemo(() => {
+    if (item.type === 'ad_hoc' || !item.next_service_miles || !item.last_service_miles) {
+      return { progressPercent: null, progressLabel: '', nextLabel: '' }
+    }
+    const totalInterval = item.next_service_miles - item.last_service_miles
+    const used = currentMileage - item.last_service_miles
+    const pct = Math.min(Math.max((used / totalInterval) * 100, 0), 100)
+    const remaining = item.miles_remaining ?? (item.next_service_miles - currentMileage)
+    const label = remaining < 0
+      ? `${formatMileage(Math.abs(remaining))} mi over`
+      : `${formatMileage(remaining)} mi left`
+    const next = `Next: ${formatMileage(item.next_service_miles)} mi`
+    return { progressPercent: pct, progressLabel: label, nextLabel: next }
+  }, [item, currentMileage])
+
+  const statusColorClass =
+    status === 'overdue'
+      ? 'text-status-overdue'
+      : status === 'due_soon'
+        ? 'text-status-due-soon'
+        : status === 'ok'
+          ? 'text-status-ok'
+          : 'text-text-muted'
+
+  const fillColorClass =
+    status === 'overdue'
+      ? 'bg-status-overdue'
+      : status === 'due_soon'
+        ? 'bg-status-due-soon'
+        : status === 'ok'
+          ? 'bg-status-ok'
+          : 'bg-status-adhoc'
 
   return (
     <>
-      <StatusCard status={status} delay={delay}>
-        <div className="flex justify-between items-start mb-1">
-          <div className="font-medium text-sm">{item.name}</div>
-          <div className="flex items-center gap-2">
-            {item.estimated_cost != null && (
-              <span className="text-xs font-mono text-text-secondary">
-                {formatCurrency(item.estimated_cost)}
-              </span>
-            )}
-            <button
-              onClick={() => setEditOpen(true)}
-              className="p-1 text-text-muted hover:text-accent transition-colors rounded"
-              title="Edit"
-            >
-              <Pencil className="w-3.5 h-3.5" />
-            </button>
+      <div
+        className="bg-bg-card border border-border-default rounded-[14px] px-4 py-3.5 transition-all duration-200 hover:-translate-y-px hover:shadow-[0_4px_16px_rgba(0,0,0,0.25)] hover:border-[color-mix(in_srgb,var(--color-accent)_30%,var(--color-border-default))] animate-card-in cursor-pointer"
+        style={{ animationDelay: `${delay}s` }}
+        onClick={() => setServicedOpen(true)}
+      >
+        {/* Top row: name + badge */}
+        <div className="flex items-center gap-2.5 mb-1.5">
+          <span className="font-semibold text-[0.88rem] flex-1 min-w-0 truncate">{item.name}</span>
+          <div className="shrink-0">
+            <StatusBadge status={status} />
           </div>
         </div>
-        <TypeBadge type={item.type} />
 
-        <div className="mt-2.5 space-y-1 text-xs text-text-secondary">
-          {item.last_service_date && (
-            <div className="flex justify-between">
-              <span>Last service</span>
-              <span>
-                {formatDate(item.last_service_date)}
-                {item.last_service_miles != null &&
-                  ` · ${formatMileage(item.last_service_miles)} mi`}
+        {/* Info row */}
+        <div className="flex flex-wrap gap-x-4 gap-y-1.5 text-xs text-text-muted mb-1.5">
+          {categoryName && (
+            <span className="flex items-center gap-1">
+              <Tag className="w-[13px] h-[13px]" />
+              {categoryName}
+            </span>
+          )}
+          {lastDate && (
+            <span className="flex items-center gap-1">
+              <Calendar className="w-[13px] h-[13px]" />
+              Last: {lastDate}
+            </span>
+          )}
+          {item.last_service_miles != null && (
+            <span className="flex items-center gap-1">
+              <Gauge className="w-[13px] h-[13px]" />
+              {formatMileage(item.last_service_miles)} mi
+            </span>
+          )}
+          {costStr && (
+            <span className="flex items-center gap-1">
+              <DollarSign className="w-[13px] h-[13px]" />
+              {costStr}
+            </span>
+          )}
+        </div>
+
+        {/* Progress */}
+        {progressPercent !== null && (
+          <div className="mt-1">
+            <div className="flex justify-between text-[0.7rem] mb-0.5">
+              <span className="text-text-muted">{nextLabel}</span>
+              <span className={`font-mono font-medium ${statusColorClass}`}>
+                {progressLabel}
               </span>
             </div>
-          )}
-          <div className="flex justify-between">
-            <span>Next due</span>
-            <span className="font-mono">
-              {item.next_service_miles != null
-                ? `${formatMileage(item.next_service_miles)} mi`
-                : item.target_miles != null
-                  ? `${formatMileage(item.target_miles)} mi`
-                  : item.target_date != null
-                    ? formatDate(item.target_date)
-                    : 'As Needed'}
-            </span>
-          </div>
-        </div>
-
-        {percent !== null && (
-          <div className="mt-2.5">
-            <ProgressBar percent={percent} status={status} />
-            <div className="flex justify-between mt-1 text-xs">
-              <span className="text-text-muted">
-                {percent > 100 ? `${percent - 100}% over` : `${percent}%`}
-              </span>
-              {item.miles_remaining != null && (
-                <span
-                  className={`font-mono ${
-                    item.miles_remaining <= 0
-                      ? 'text-status-overdue'
-                      : 'text-text-secondary'
-                  }`}
-                >
-                  {item.miles_remaining <= 0
-                    ? `${formatMileage(Math.abs(item.miles_remaining))} mi over`
-                    : `${formatMileage(item.miles_remaining)} mi left`}
-                </span>
+            <div className="h-1.5 bg-progress-track rounded-full overflow-visible relative">
+              <div
+                className={`h-full rounded-full transition-all duration-500 ${fillColorClass}`}
+                style={{ width: `${Math.max(progressPercent, 0)}%` }}
+              />
+              {status === 'overdue' && (
+                <div className="absolute right-0 -top-1 -bottom-1 w-0.5 bg-text-muted rounded-sm" />
               )}
             </div>
           </div>
         )}
-
-        <button
-          onClick={() => setServicedOpen(true)}
-          className="mt-3 w-full py-2 bg-accent-subtle text-accent rounded-lg hover:bg-accent/20 transition-colors text-xs font-medium"
-        >
-          Mark as Serviced
-        </button>
-      </StatusCard>
+      </div>
 
       <MarkServicedModal
         open={servicedOpen}
@@ -283,18 +385,6 @@ function TrackerItemCard({
       />
     </>
   )
-}
-
-function calcPercent(item: IntervalItem, currentMileage: number): number | null {
-  if (item.type === 'ad_hoc' && !item.target_miles) return null
-  const interval =
-    item.recommended_interval_miles ??
-    (item.target_miles && item.last_service_miles
-      ? item.target_miles - item.last_service_miles
-      : null)
-  if (!interval || !item.last_service_miles) return null
-  const used = currentMileage - item.last_service_miles
-  return Math.round((used / interval) * 100)
 }
 
 function MarkServicedModal({
