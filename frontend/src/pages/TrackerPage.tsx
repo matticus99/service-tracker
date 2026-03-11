@@ -5,7 +5,6 @@ import {
   Gauge,
   Calendar,
   DollarSign,
-  Plus,
   Tag,
   MapPin,
 } from 'lucide-react'
@@ -25,7 +24,7 @@ import { ErrorState } from '@/components/ui/ErrorState'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { IntervalItemFormModal } from '@/components/forms/IntervalItemFormModal'
 import { ShopAutocomplete } from '@/components/forms/ShopAutocomplete'
-import { formatMileage, formatCurrency, formatDate } from '@/lib/format'
+import { formatMileage, formatCurrency } from '@/lib/format'
 import type { IntervalItem, IntervalStatus, ServiceCategory } from '@/types/api'
 
 const STATUS_ORDER: IntervalStatus[] = ['overdue', 'due_soon', 'ok', 'ad_hoc']

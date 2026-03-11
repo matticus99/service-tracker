@@ -3,7 +3,6 @@ import {
   Search,
   Wrench,
   ChevronRight,
-  X,
   Inbox,
   Plus,
   StickyNote,
@@ -13,11 +12,9 @@ import {
   DollarSign,
   FileText,
   Paperclip,
-  Pencil,
 } from 'lucide-react'
 import { useServiceHistory, useCategories, useShops, useObservations } from '@/hooks/useApi'
 import { useVehicle } from '@/context/VehicleContext'
-import { Card } from '@/components/ui/Card'
 import { Modal } from '@/components/ui/Modal'
 import { PageSkeleton } from '@/components/ui/Skeleton'
 import { ErrorState } from '@/components/ui/ErrorState'
@@ -26,7 +23,6 @@ import { AttachmentSection } from '@/components/attachments/AttachmentSection'
 import { AddServiceRecordModal } from '@/components/forms/AddServiceRecordModal'
 import { AddObservationModal } from '@/components/forms/AddObservationModal'
 import {
-  formatDate,
   formatMileage,
   formatCurrency,
 } from '@/lib/format'
@@ -38,6 +34,10 @@ import type {
   Observation,
   ServiceCategory,
 } from '@/types/api'
+
+type ServiceEntry =
+  | { type: 'oil_change'; data: OilChange }
+  | { type: 'service'; data: ServiceRecord }
 
 export function HistoryPage() {
   const { vehicleId, vehicle } = useVehicle()
@@ -373,7 +373,7 @@ function getServiceTitle(sr: ServiceRecord, categories: ServiceCategory[]): stri
     getServiceName(item.service_definition_id, item.custom_service_name, categories),
   ) ?? sr.services_performed ?? []
   if (itemNames.length === 0) return 'Service'
-  if (itemNames.length === 1) return itemNames[0]
+  if (itemNames.length === 1) return itemNames[0] ?? 'Service'
   return `${itemNames.length} Services`
 }
 
@@ -395,7 +395,7 @@ function HistoryCard({
   delay,
   onClick,
 }: {
-  entry: ServiceHistoryEntry
+  entry: ServiceEntry
   categories: ServiceCategory[]
   shops: { id: string; name: string }[]
   delay: number
@@ -413,7 +413,7 @@ function HistoryCard({
     : getSubServicesText(d as ServiceRecord, categories)
 
   const sr = isOil ? null : (d as ServiceRecord)
-  const dateStr = new Date((isOil ? d.service_date : d.service_date) + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+  const dateStr = new Date(d.service_date + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
   const shopName = sr?.shop_id
     ? shops.find((s) => s.id === sr.shop_id)?.name ?? sr.facility ?? ''
     : d.facility ?? ''
@@ -527,7 +527,7 @@ function DetailModal({
   shops,
   observations,
 }: {
-  entry: ServiceHistoryEntry
+  entry: ServiceEntry
   onClose: () => void
   vehicleId: string
   categories: ServiceCategory[]

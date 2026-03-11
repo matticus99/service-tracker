@@ -45,9 +45,9 @@ describe('mergeHistory', () => {
 
     expect(merged).toHaveLength(2)
     expect(merged[0]!.type).toBe('oil_change')
-    expect(merged[0]!.data.service_date).toBe('2025-06-01')
+    expect((merged[0]!.data as OilChange).service_date).toBe('2025-06-01')
     expect(merged[1]!.type).toBe('service')
-    expect(merged[1]!.data.service_date).toBe('2025-05-01')
+    expect((merged[1]!.data as ServiceRecord).service_date).toBe('2025-05-01')
   })
 
   it('handles empty arrays', () => {
