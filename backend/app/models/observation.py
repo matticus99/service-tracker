@@ -21,3 +21,4 @@ class Observation(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
     vehicle = relationship("Vehicle", back_populates="observations")
+    note_service_links = relationship("NoteServiceLink", back_populates="observation", cascade="all, delete-orphan")

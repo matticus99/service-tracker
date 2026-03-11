@@ -5,7 +5,7 @@ from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
-from app.models import Vehicle, OilChange, IntervalItem, AppSettings
+from app.models import Vehicle, ServiceRecord, ServiceRecordItem, ServiceDefinition, IntervalItem, AppSettings
 from app.models.interval_item import IntervalItemType
 from app.services.interval_status import compute_status as _compute_status
 from app.schemas.interval_item import IntervalItemOut
@@ -41,19 +41,28 @@ async def get_dashboard(vehicle_id: uuid.UUID, db: AsyncSession = Depends(get_db
         elif status == "due_soon":
             due_soon.append(out)
 
-    # Mileage stats from oil change history
-    oil_changes_result = await db.execute(
-        select(OilChange)
-        .where(OilChange.vehicle_id == vehicle_id)
-        .order_by(OilChange.service_date.asc())
+    # Find the "Oil & Filter Change" service_definition
+    oil_def_result = await db.execute(
+        select(ServiceDefinition).where(ServiceDefinition.name == "Oil & Filter Change").limit(1)
     )
-    oil_changes = oil_changes_result.scalars().all()
+    oil_def = oil_def_result.scalar_one_or_none()
 
-    mileage_stats = MileageStats(daily=0, weekly=0, monthly=0, data_points=len(oil_changes))
+    # Mileage stats from oil change service records
+    oil_sr_query = (
+        select(ServiceRecord)
+        .where(ServiceRecord.vehicle_id == vehicle_id, ServiceRecord.odometer.isnot(None))
+        .join(ServiceRecordItem, ServiceRecordItem.service_record_id == ServiceRecord.id)
+        .where(ServiceRecordItem.service_definition_id == oil_def.id if oil_def else False)
+        .order_by(ServiceRecord.service_date.asc())
+    )
+    oil_records_result = await db.execute(oil_sr_query)
+    oil_records = oil_records_result.scalars().unique().all()
 
-    if len(oil_changes) >= 2:
-        first = oil_changes[0]
-        last = oil_changes[-1]
+    mileage_stats = MileageStats(daily=0, weekly=0, monthly=0, data_points=len(oil_records))
+
+    if len(oil_records) >= 2:
+        first = oil_records[0]
+        last = oil_records[-1]
         total_miles = last.odometer - first.odometer
         total_days = (last.service_date - first.service_date).days
         if total_days > 0:
@@ -77,10 +86,10 @@ async def get_dashboard(vehicle_id: uuid.UUID, db: AsyncSession = Depends(get_db
         None,
     )
 
-    if oil_changes:
-        latest_oc = oil_changes[-1]
-        next_oil.last_date = latest_oc.service_date
-        next_oil.last_facility = latest_oc.facility
+    if oil_records:
+        latest = oil_records[-1]
+        next_oil.last_date = latest.service_date
+        next_oil.last_facility = latest.facility
 
     if oil_interval and oil_interval.next_service_miles:
         next_oil.due_at_miles = oil_interval.next_service_miles

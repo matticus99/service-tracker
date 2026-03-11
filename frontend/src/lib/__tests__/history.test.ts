@@ -26,6 +26,12 @@ function makeServiceRecord(overrides: Partial<ServiceRecord> = {}): ServiceRecor
     odometer: 182000,
     services_performed: ['Brake inspection'],
     notes: null,
+    shop_id: null,
+    total_cost: null,
+    shop_fee: null,
+    tax: null,
+    items: [],
+    linked_observation_ids: [],
     created_at: '2025-05-01T10:00:00Z',
     ...overrides,
   }

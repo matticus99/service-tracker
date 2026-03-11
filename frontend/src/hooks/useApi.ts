@@ -8,6 +8,8 @@ import type {
   IntervalItemCreate,
   VehicleUpdate,
   SettingsUpdate,
+  ShopCreate,
+  ShopUpdate,
 } from '@/types/api'
 
 export function useVehicles() {
@@ -25,15 +27,23 @@ export function useDashboard(vehicleId: string | undefined) {
   })
 }
 
+export function useCategories() {
+  return useQuery({
+    queryKey: ['categories'],
+    queryFn: api.categories.list,
+  })
+}
+
 export function useServiceHistory(vehicleId: string | undefined) {
   return useQuery({
     queryKey: ['service-history', vehicleId],
     queryFn: async () => {
-      const [oilChanges, serviceRecords] = await Promise.all([
+      const [oilChanges, serviceRecords, observations] = await Promise.all([
         api.oilChanges.list(vehicleId!),
         api.serviceRecords.list(vehicleId!),
+        api.observations.list(vehicleId!),
       ])
-      return mergeHistory(oilChanges, serviceRecords)
+      return mergeHistory(oilChanges, serviceRecords, observations)
     },
     enabled: !!vehicleId,
   })
@@ -62,6 +72,14 @@ export function useSettings() {
   return useQuery({
     queryKey: ['settings'],
     queryFn: api.settings.get,
+  })
+}
+
+export function useShops(vehicleId: string | undefined) {
+  return useQuery({
+    queryKey: ['shops', vehicleId],
+    queryFn: () => api.shops.list(vehicleId!),
+    enabled: !!vehicleId,
   })
 }
 
@@ -290,6 +308,60 @@ export function useToggleObservationResolved() {
     },
   })
 }
+
+// Shops mutations
+
+export function useCreateShop() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({
+      vehicleId,
+      data,
+    }: {
+      vehicleId: string
+      data: ShopCreate
+    }) => api.shops.create(vehicleId, data),
+    onSuccess: (_data, { vehicleId }) => {
+      queryClient.invalidateQueries({ queryKey: ['shops', vehicleId] })
+    },
+  })
+}
+
+export function useUpdateShop() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({
+      vehicleId,
+      shopId,
+      data,
+    }: {
+      vehicleId: string
+      shopId: string
+      data: ShopUpdate
+    }) => api.shops.update(vehicleId, shopId, data),
+    onSuccess: (_data, { vehicleId }) => {
+      queryClient.invalidateQueries({ queryKey: ['shops', vehicleId] })
+    },
+  })
+}
+
+export function useDeleteShop() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({
+      vehicleId,
+      shopId,
+    }: {
+      vehicleId: string
+      shopId: string
+    }) => api.shops.delete(vehicleId, shopId),
+    onSuccess: (_data, { vehicleId }) => {
+      queryClient.invalidateQueries({ queryKey: ['shops', vehicleId] })
+    },
+  })
+}
+
+// Attachments
 
 export function useUploadAttachment() {
   const queryClient = useQueryClient()

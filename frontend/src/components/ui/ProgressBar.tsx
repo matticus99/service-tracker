@@ -10,9 +10,10 @@ const FILL_COLORS: Record<IntervalStatus, string> = {
 interface ProgressBarProps {
   percent: number
   status: IntervalStatus
+  showMarker?: boolean
 }
 
-export function ProgressBar({ percent, status }: ProgressBarProps) {
+export function ProgressBar({ percent, status, showMarker }: ProgressBarProps) {
   const capped = Math.min(percent, 115)
 
   return (
@@ -21,6 +22,9 @@ export function ProgressBar({ percent, status }: ProgressBarProps) {
         className={`h-full rounded-full transition-all duration-500 ${FILL_COLORS[status]}`}
         style={{ width: `${Math.max(capped, 0)}%` }}
       />
+      {showMarker && (
+        <div className="absolute right-0 -top-1 -bottom-1 w-0.5 bg-text-muted rounded-sm" />
+      )}
     </div>
   )
 }

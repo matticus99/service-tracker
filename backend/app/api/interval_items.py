@@ -5,7 +5,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
-from app.models import Vehicle, IntervalItem, OilChange, ServiceRecord
+from app.models import Vehicle, IntervalItem, ServiceRecord, ServiceRecordItem, ServiceDefinition
 from app.models.interval_item import IntervalItemType
 from app.schemas.interval_item import IntervalItemCreate, IntervalItemUpdate, IntervalItemOut, MarkServicedRequest
 from app.services.interval_status import compute_status, item_to_out
@@ -70,16 +70,6 @@ async def update_interval_item(
     return _item_to_out(item, vehicle.current_mileage)
 
 
-def _resolve_record_type(item: IntervalItem) -> str:
-    """Determine which history record type to create for this interval item."""
-    if item.record_type:
-        return item.record_type
-    # Auto-detect: if the name contains "oil", treat as oil change
-    if "oil" in item.name.lower():
-        return "oil_change"
-    return "service_record"
-
-
 @router.post("/{vehicle_id}/interval-items/{item_id}/mark-serviced", response_model=IntervalItemOut)
 async def mark_serviced(
     vehicle_id: uuid.UUID, item_id: uuid.UUID, data: MarkServicedRequest, db: AsyncSession = Depends(get_db)
@@ -103,38 +93,34 @@ async def mark_serviced(
     if data.odometer > vehicle.current_mileage:
         vehicle.current_mileage = data.odometer
 
-    # Create a history record so the service appears on the History page
-    record_type = _resolve_record_type(item)
+    # Always create a service_record + service_record_item
+    service_record = ServiceRecord(
+        vehicle_id=vehicle_id,
+        service_date=data.service_date,
+        facility=data.facility,
+        odometer=data.odometer,
+        services_performed=[item.name],
+    )
+    db.add(service_record)
+    await db.flush()
 
-    if record_type == "oil_change":
-        oil_change = OilChange(
-            vehicle_id=vehicle_id,
-            service_date=data.service_date,
-            facility=data.facility,
-            odometer=data.odometer,
-        )
-        # Calculate interval from previous oil change
+    # Resolve service_definition_id from the interval item or by name lookup
+    svc_def_id = item.service_definition_id
+    if not svc_def_id:
         result = await db.execute(
-            select(OilChange)
-            .where(OilChange.vehicle_id == vehicle_id, OilChange.service_date < data.service_date)
-            .order_by(OilChange.service_date.desc())
-            .limit(1)
+            select(ServiceDefinition).where(ServiceDefinition.name == item.name).limit(1)
         )
-        prev = result.scalar_one_or_none()
-        if prev:
-            oil_change.interval_miles = oil_change.odometer - prev.odometer
-            delta = oil_change.service_date - prev.service_date
-            oil_change.interval_months = round(delta.days / 30.44, 1)
-        db.add(oil_change)
-    else:
-        service_record = ServiceRecord(
-            vehicle_id=vehicle_id,
-            service_date=data.service_date,
-            facility=data.facility,
-            odometer=data.odometer,
-            services_performed=[item.name],
-        )
-        db.add(service_record)
+        svc_def = result.scalar_one_or_none()
+        if svc_def:
+            svc_def_id = svc_def.id
+
+    service_item = ServiceRecordItem(
+        service_record_id=service_record.id,
+        service_definition_id=svc_def_id,
+        custom_service_name=item.name if not svc_def_id else None,
+        display_order=0,
+    )
+    db.add(service_item)
 
     await db.commit()
     await db.refresh(item)

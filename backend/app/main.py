@@ -27,6 +27,10 @@ async def lifespan(app: FastAPI):
             app_settings.vapid_private_key = priv
             app_settings.vapid_public_key = pub
 
+        # Seed service categories and definitions
+        from app.services.seed import seed_categories_and_services
+        await seed_categories_and_services(session)
+
         await session.commit()
     yield
 

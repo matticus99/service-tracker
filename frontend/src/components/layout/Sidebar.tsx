@@ -3,7 +3,7 @@ import {
   LayoutDashboard,
   Clock,
   Gauge,
-  FileText,
+  Store,
   Settings,
   Wrench,
 } from 'lucide-react'
@@ -12,7 +12,7 @@ const NAV_ITEMS = [
   { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
   { to: '/history', icon: Clock, label: 'History' },
   { to: '/tracker', icon: Gauge, label: 'Tracker' },
-  { to: '/notes', icon: FileText, label: 'Notes' },
+  { to: '/shops', icon: Store, label: 'Shops' },
 ]
 
 export function Sidebar() {

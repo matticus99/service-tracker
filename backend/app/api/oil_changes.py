@@ -1,6 +1,6 @@
 import uuid
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Response
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -9,6 +9,13 @@ from app.models import Vehicle, OilChange
 from app.schemas.oil_change import OilChangeCreate, OilChangeUpdate, OilChangeOut
 
 router = APIRouter()
+
+DEPRECATION_HEADER = "Oil change endpoints are deprecated. Use service records with 'Oil & Filter Change' service instead."
+
+
+def _add_deprecation_headers(response: Response):
+    response.headers["Deprecation"] = "true"
+    response.headers["X-Deprecation-Notice"] = DEPRECATION_HEADER
 
 
 async def _get_vehicle(vehicle_id: uuid.UUID, db: AsyncSession) -> Vehicle:
@@ -27,7 +34,8 @@ def _calculate_intervals(new_oc: OilChange, prev_oc: OilChange | None):
 
 
 @router.get("/{vehicle_id}/oil-changes", response_model=list[OilChangeOut])
-async def list_oil_changes(vehicle_id: uuid.UUID, db: AsyncSession = Depends(get_db)):
+async def list_oil_changes(vehicle_id: uuid.UUID, response: Response, db: AsyncSession = Depends(get_db)):
+    _add_deprecation_headers(response)
     await _get_vehicle(vehicle_id, db)
     result = await db.execute(
         select(OilChange)
@@ -38,7 +46,8 @@ async def list_oil_changes(vehicle_id: uuid.UUID, db: AsyncSession = Depends(get
 
 
 @router.post("/{vehicle_id}/oil-changes", response_model=OilChangeOut, status_code=201)
-async def create_oil_change(vehicle_id: uuid.UUID, data: OilChangeCreate, db: AsyncSession = Depends(get_db)):
+async def create_oil_change(vehicle_id: uuid.UUID, data: OilChangeCreate, response: Response, db: AsyncSession = Depends(get_db)):
+    _add_deprecation_headers(response)
     vehicle = await _get_vehicle(vehicle_id, db)
 
     oil_change = OilChange(vehicle_id=vehicle_id, **data.model_dump())
@@ -65,7 +74,8 @@ async def create_oil_change(vehicle_id: uuid.UUID, data: OilChangeCreate, db: As
 
 
 @router.get("/{vehicle_id}/oil-changes/{oc_id}", response_model=OilChangeOut)
-async def get_oil_change(vehicle_id: uuid.UUID, oc_id: uuid.UUID, db: AsyncSession = Depends(get_db)):
+async def get_oil_change(vehicle_id: uuid.UUID, oc_id: uuid.UUID, response: Response, db: AsyncSession = Depends(get_db)):
+    _add_deprecation_headers(response)
     await _get_vehicle(vehicle_id, db)
     oc = await db.get(OilChange, oc_id)
     if not oc or oc.vehicle_id != vehicle_id:
@@ -75,8 +85,9 @@ async def get_oil_change(vehicle_id: uuid.UUID, oc_id: uuid.UUID, db: AsyncSessi
 
 @router.patch("/{vehicle_id}/oil-changes/{oc_id}", response_model=OilChangeOut)
 async def update_oil_change(
-    vehicle_id: uuid.UUID, oc_id: uuid.UUID, data: OilChangeUpdate, db: AsyncSession = Depends(get_db)
+    vehicle_id: uuid.UUID, oc_id: uuid.UUID, data: OilChangeUpdate, response: Response, db: AsyncSession = Depends(get_db)
 ):
+    _add_deprecation_headers(response)
     await _get_vehicle(vehicle_id, db)
     oc = await db.get(OilChange, oc_id)
     if not oc or oc.vehicle_id != vehicle_id:
@@ -89,7 +100,8 @@ async def update_oil_change(
 
 
 @router.delete("/{vehicle_id}/oil-changes/{oc_id}", status_code=204)
-async def delete_oil_change(vehicle_id: uuid.UUID, oc_id: uuid.UUID, db: AsyncSession = Depends(get_db)):
+async def delete_oil_change(vehicle_id: uuid.UUID, oc_id: uuid.UUID, response: Response, db: AsyncSession = Depends(get_db)):
+    _add_deprecation_headers(response)
     await _get_vehicle(vehicle_id, db)
     oc = await db.get(OilChange, oc_id)
     if not oc or oc.vehicle_id != vehicle_id:

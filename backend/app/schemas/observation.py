@@ -28,6 +28,16 @@ class ObservationOut(BaseModel):
     observation: str
     resolved: bool
     resolved_date: date | None
+    linked_service_record_ids: list[uuid.UUID] = []
     created_at: datetime
 
     model_config = {"from_attributes": True}
+
+    @classmethod
+    def from_observation(cls, obs, links=None):
+        out = cls.model_validate(obs)
+        if links is not None:
+            out.linked_service_record_ids = [link.service_record_id for link in links]
+        elif hasattr(obs, "note_service_links"):
+            out.linked_service_record_ids = [link.service_record_id for link in obs.note_service_links]
+        return out
