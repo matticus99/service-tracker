@@ -31,3 +31,4 @@ node_modules/
 
 # Documentation
 docs
+.claude/settings.local.json
