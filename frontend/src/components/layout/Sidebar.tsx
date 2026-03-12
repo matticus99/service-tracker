@@ -6,7 +6,10 @@ import {
   Store,
   Settings,
   Wrench,
+  Sun,
+  Moon,
 } from 'lucide-react'
+import { useTheme } from '@/context/ThemeContext'
 
 const NAV_ITEMS = [
   { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
@@ -16,6 +19,8 @@ const NAV_ITEMS = [
 ]
 
 export function Sidebar() {
+  const { theme, toggleTheme } = useTheme()
+
   return (
     <aside className="hidden lg:flex flex-col w-[220px] bg-bg-surface border-r border-border-subtle shrink-0">
       <div className="flex items-center gap-2.5 px-5 pt-5 pb-7 border-b border-border-subtle">
@@ -43,7 +48,14 @@ export function Sidebar() {
           </NavLink>
         ))}
 
-        <div className="mt-auto border-t border-border-subtle pt-3">
+        <div className="mt-auto border-t border-border-subtle pt-3 flex flex-col gap-0.5">
+          <button
+            onClick={toggleTheme}
+            className="flex items-center gap-3 px-3.5 py-2.5 rounded-[10px] font-medium text-[0.9rem] text-text-secondary hover:bg-bg-card hover:text-text-primary transition-all duration-200 w-full"
+          >
+            {theme === 'dark' ? <Sun className="w-5 h-5 shrink-0" /> : <Moon className="w-5 h-5 shrink-0" />}
+            {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
+          </button>
           <NavLink
             to="/settings"
             className="flex items-center gap-3 px-3.5 py-2.5 rounded-[10px] font-medium text-[0.9rem] text-text-secondary hover:bg-bg-card hover:text-text-primary transition-all duration-200"

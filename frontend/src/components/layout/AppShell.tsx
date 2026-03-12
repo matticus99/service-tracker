@@ -1,12 +1,14 @@
 import { Outlet } from 'react-router-dom'
 import { VehicleProvider } from '@/context/VehicleContext'
 import { ToastProvider } from '@/context/ToastContext'
+import { ThemeProvider } from '@/context/ThemeContext'
 import { Sidebar } from './Sidebar'
 import { TopBar } from './TopBar'
 import { TabBar } from './TabBar'
 
 export function AppShell() {
   return (
+    <ThemeProvider>
     <VehicleProvider>
       <ToastProvider>
         <div className="flex h-dvh overflow-hidden bg-bg-body text-text-primary font-sans">
@@ -21,5 +23,6 @@ export function AppShell() {
         </div>
       </ToastProvider>
     </VehicleProvider>
+    </ThemeProvider>
   )
 }

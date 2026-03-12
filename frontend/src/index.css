@@ -57,6 +57,43 @@
   --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
 }
 
+/* Light theme overrides */
+[data-theme="light"] {
+  --color-bg-body: #F4F6F9;
+  --color-bg-surface: #FFFFFF;
+  --color-bg-card: #FFFFFF;
+  --color-bg-card-hover: #F0F2F5;
+  --color-bg-elevated: #FFFFFF;
+  --color-bg-input: #F4F6F9;
+
+  --color-border-default: #D8DCE4;
+  --color-border-subtle: #E5E8EE;
+
+  --color-text-primary: #1A1D24;
+  --color-text-secondary: #5F6878;
+  --color-text-muted: #9BA3B2;
+  --color-text-inverse: #FFFFFF;
+
+  --color-accent: #3B6FD9;
+  --color-accent-hover: #2F5EBF;
+  --color-accent-subtle: rgba(59, 111, 217, 0.10);
+
+  --color-status-overdue: #DC3030;
+  --color-status-overdue-subtle: rgba(220, 48, 48, 0.09);
+  --color-status-overdue-border: rgba(220, 48, 48, 0.35);
+  --color-status-due-soon: #CA9A06;
+  --color-status-due-soon-subtle: rgba(202, 154, 6, 0.09);
+  --color-status-due-soon-border: rgba(202, 154, 6, 0.35);
+  --color-status-ok: #1AA34A;
+  --color-status-ok-subtle: rgba(26, 163, 74, 0.09);
+  --color-status-ok-border: rgba(26, 163, 74, 0.35);
+  --color-status-adhoc: #64748B;
+  --color-status-adhoc-subtle: rgba(100, 116, 139, 0.09);
+  --color-status-adhoc-border: rgba(100, 116, 139, 0.35);
+
+  --color-progress-track: #E5E8EE;
+}
+
 /* Base styles */
 html {
   font-size: 15px;
@@ -67,8 +104,8 @@ html {
 /* Custom scrollbar */
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #272E42; border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: #4F5770; }
+::-webkit-scrollbar-thumb { background: var(--color-border-default); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--color-text-muted); }
 
 /* Animations */
 @keyframes card-in {
